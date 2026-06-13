@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MisNotas-E</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#121212',
+                            surface: '#1e1e1e',
+                            border: '#333333',
+                            text: '#e0e0e0',
+                            muted: '#9e9e9e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-mono {
+            font-family: 'Fira Code', monospace;
+        }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .code-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+        .code-scroll::-webkit-scrollbar-track { background: transparent; }
+        .code-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .dark .code-scroll::-webkit-scrollbar-thumb { background-color: #4b5563; }
+
+        .line-numbers-container {
+            user-select: none;
+            text-align: right;
+            border-right: 1px solid #e2e8f0;
+            padding-right: 0.5rem;
+            color: #94a3b8;
+        }
+        .dark .line-numbers-container { border-right-color: #374151; color: #6b7280; }
+        
+        textarea { outline: none; }
+
+        .sidebar { transition: width 0.3s ease; }
+        .sidebar.collapsed { width: 4.5rem; }
+        .sidebar.collapsed .hide-on-collapse { display: none !important; }
+        .sidebar.collapsed .center-on-collapse { justify-content: center !important; padding-left: 0; padding-right: 0; }
+        .show-on-collapse { display: none !important; }
+        .sidebar.collapsed .show-on-collapse { display: flex !important; }
+        .sidebar.collapsed .px-col { padding-left: 0.5rem; padding-right: 0.5rem; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        
+        .drag-over { border-top: 2px solid #3b82f6 !important; padding-top: 10px !important; }
+        .block-drag-handle { cursor: grab; }
+        .block-drag-handle:active { cursor: grabbing; }
+    </style>
+</head>
+<body class="h-screen w-full flex bg-gray-50 text-gray-800 dark:bg-dark-bg dark:text-dark-text overflow-hidden transition-colors duration-300">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar w-72 bg-gray-900 text-gray-300 dark:bg-[#0a0a0a] flex flex-col h-full shrink-0 border-r border-gray-800 relative z-20 transition-colors duration-300">
+        <!-- Botón de Colapsar Sidebar -->
+        <button onclick="toggleSidebar()" class="absolute -right-3 top-5 bg-gray-800 border border-gray-700 text-gray-300 rounded-full p-1 hover:text-white z-30 shadow-lg dark:bg-gray-800">
+            <i data-lucide="chevron-left" id="sidebarToggleIcon" class="w-4 h-4 transition-transform duration-300"></i>
+        </button>
+
+        <!-- Cabecera Sidebar -->
+        <div class="p-4 border-b border-gray-800 flex items-center center-on-collapse whitespace-nowrap overflow-hidden">
+            <i data-lucide="code-2" class="text-blue-500 w-6 h-6 shrink-0"></i>
+            <h1 class="text-xl font-bold text-white ml-2 hide-on-collapse">MisNotas-E</h1>
+        </div>
+
+        <!-- Buscador -->
+        <div class="p-4 border-b border-gray-800 center-on-collapse">
+            <div class="relative flex items-center justify-center w-full" title="Buscar">
+                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 hide-on-collapse"></i>
+                <i data-lucide="search" class="w-5 h-5 text-gray-400 hidden show-on-collapse cursor-pointer hover:text-white transition" onclick="toggleSidebar()"></i>
+                <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Buscar notas o código..." 
+                    class="w-full bg-gray-800 text-sm text-gray-200 rounded-md pl-9 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-gray-500 hide-on-collapse dark:bg-[#1a1a1a]">
+            </div>
+        </div>
+
+        <!-- Lista de Cuadernos -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar px-col" id="notebooksList">
+            <!-- Renderizado por JS -->
+        </div>
+
+        <!-- Acciones Inferiores -->
+        <div class="p-4 mt-auto space-y-2 border-t border-gray-800">
+            <button onclick="addNotebook()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors flex items-center justify-center font-medium shadow-md">
+                <i data-lucide="folder-plus" class="w-5 h-5"></i>
+                <span class="ml-2 hide-on-collapse" data-i18n="newNotebook">Nuevo Cuaderno</span>
+            </button>
+            <button onclick="openSettings()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 p-2 rounded-lg transition-colors flex items-center justify-center font-medium shadow-sm">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span class="ml-2 hide-on-collapse" data-i18n="settings">Configuraciones</span>
+            </button>
+        </div>     
+    </aside>
+
+    <!-- Área Principal (Editor) -->
+    <main class="flex-1 flex flex-col h-full bg-white dark:bg-[#121212] relative overflow-hidden transition-colors duration-300">
+        <header class="h-14 border-b border-gray-200 dark:border-[#333333] flex items-center px-6 justify-between bg-white dark:bg-[#1a1a1a] shrink-0 z-10 transition-colors duration-300" id="editorHeader">
+            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 truncate" id="breadcrumbs">
+                <!-- Renderizado por JS -->
+            </div>
+            <div class="flex items-center gap-2 shrink-0 ml-4">
+                <button id="toggleModeBtn" onclick="toggleEditMode()" class="hidden flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition">
+                    <i data-lucide="eye" class="w-4 h-4"></i> <span data-i18n="readMode">Lectura</span>
+                </button>
+                <label id="notebookColorBtn" class="hidden cursor-pointer text-purple-500 hover:text-purple-700 p-2 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/20 transition relative" title="Cambiar Color de Cuaderno">
+                    <i data-lucide="palette" class="w-4 h-4"></i>
+                    <input type="color" id="notebookColorPicker" class="absolute opacity-0 w-0 h-0" onchange="updateActiveNotebookColor(this.value)">
+                </label>
+                <button id="deleteNoteBtn" onclick="deleteActiveNote()" class="hidden text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 lg:p-12" id="editorContainer">
+            <!-- Pantalla vacía -->
+            <div id="emptyState" class="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-600">
+                <i data-lucide="book-open" class="w-16 h-16 mb-4 opacity-50"></i>
+                <p class="text-lg font-medium text-gray-500 dark:text-gray-400" data-i18n="emptyStateTitle">Selecciona o crea una nota para empezar</p>
+                <p class="text-sm mt-2" data-i18n="emptyStateDesc">Agrupa tus notas en cuadernos y organiza tu código.</p>
+            </div>
+            
+            <div id="noteEditor" class="hidden w-[90%] max-w-[90%] mx-auto pb-32">
+                <div id="blocksContainer" class="">
+                    <!-- Bloques generados por JS -->
+                </div>
+                
+                <!-- Botones para agregar bloques -->
+                <div id="addBlocksContainer" class="mt-8 pt-6 border-t border-dashed border-gray-200 dark:border-gray-700 flex gap-4 justify-center hidden flex-wrap">
+                    <button onclick="addBlock('title')" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition text-sm font-medium">
+                        <i data-lucide="type" class="w-4 h-4 text-blue-500"></i> <span data-i18n="addTitle">Añadir Título</span>
+                    </button>
+                    <button onclick="addBlock('paragraph')" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition text-sm font-medium">
+                        <i data-lucide="align-left" class="w-4 h-4 text-orange-500"></i> <span data-i18n="addParagraph">Añadir Párrafo</span>
+                    </button>
+                    <button onclick="addBlock('code')" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition text-sm font-medium">
+                        <i data-lucide="code" class="w-4 h-4 text-purple-500"></i> <span data-i18n="addCode">Añadir Código</span>
+                    </button>
+                    <button onclick="addBlock('image')" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition text-sm font-medium">
+                        <i data-lucide="image" class="w-4 h-4 text-emerald-500"></i> <span data-i18n="addImage">Añadir Imagen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- ESTADO DE LA APLICACIÓN ---
+        let appData = [];
+        let userConfig = { language: 'es', theme: 'light' };
+
+        let activeNotebookId = null;
+        let activeNoteId = null;
+        let searchQuery = '';
+        let isEditMode = false;
+        let isSidebarCollapsed = false;
+        
+        let draggedBlockId = null;
+
+        const translations = {
+            es: { searchPlaceholder: "Buscar notas o código...", newNotebook: "Nuevo Cuaderno", settings: "Configuraciones", readMode: "Lectura", editMode: "Modo Edición", emptyStateTitle: "Selecciona o crea una nota para empezar", emptyStateDesc: "Agrupa tus notas en cuadernos y organiza tu código.", addTitle: "Añadir Título", addParagraph: "Añadir Párrafo", addCode: "Añadir Código", addImage: "Añadir Imagen", untitiled: "Sin título", emptyNote: "Nota vacía", deleteNotebookConfirm: "¿Estás seguro de eliminar este cuaderno y todas sus notas?", deleteNoteConfirm: "¿Eliminar esta nota permanentemente?", blockError: "La nota debe tener al menos un bloque.", titlePlaceholder: "Título...", subtitlePlaceholder: "Subtítulo o texto...", codePlaceholder: "Escribe tu código aquí...", imagePlaceholder: "URL o Ruta de la Imagen", browse: "Examinar...", zoom: "Zoom Vertical", copy: "Copiar código", refresh: "Refresh" },
+            en: { searchPlaceholder: "Search notes or code...", newNotebook: "New Notebook", settings: "Settings", readMode: "Read", editMode: "Edit Mode", emptyStateTitle: "Select or create a note to start", emptyStateDesc: "Group your notes in notebooks and organize your code.", addTitle: "Add Title", addParagraph: "Add Paragraph", addCode: "Add Code", addImage: "Add Image", untitiled: "Untitled", emptyNote: "Empty note", deleteNotebookConfirm: "Are you sure you want to delete this notebook and all its notes?", deleteNoteConfirm: "Permanently delete this note?", blockError: "The note must have at least one block.", titlePlaceholder: "Title...", subtitlePlaceholder: "Subtitle or text...", codePlaceholder: "Write your code here...", imagePlaceholder: "Image URL or Path", browse: "Browse...", zoom: "Vertical Zoom", copy: "Copy code", refresh: "Refresh" },
+            pt: { searchPlaceholder: "Pesquisar notas ou código...", newNotebook: "Novo Caderno", settings: "Configurações", readMode: "Leitura", editMode: "Modo de Edição", emptyStateTitle: "Selecione ou crie uma nota para começar", emptyStateDesc: "Agrupe suas notas em cadernos e organize seu código.", addTitle: "Adicionar Título", addParagraph: "Adicionar Parágrafo", addCode: "Adicionar Código", addImage: "Adicionar Imagem", untitiled: "Sem título", emptyNote: "Nota vazia", deleteNotebookConfirm: "Tem certeza de que deseja excluir este caderno e todas as suas notas?", deleteNoteConfirm: "Excluir esta nota permanentemente?", blockError: "A nota deve ter pelo menos um bloco.", titlePlaceholder: "Título...", subtitlePlaceholder: "Subtítulo ou texto...", codePlaceholder: "Escreva seu código aqui...", imagePlaceholder: "URL ou Caminho da Imagem", browse: "Procurar...", zoom: "Zoom Vertical", copy: "Copiar código", refresh: "Refresh" }
+        };
+
+        function t(key) {
+            return translations[userConfig.language][key] || translations['es'][key];
+        }
+
+        function applyTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.innerText = t(el.getAttribute('data-i18n'));
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+            });
+        }
+
+        function applyTheme() {
+            if (userConfig.theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        
+        async function saveData() {
+            if (window.api && window.api.saveAppData) {
+                await window.api.saveAppData(appData);
+            }
+        }
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            renderEditor();
+        }
+
+        function toggleSidebar() {
+            isSidebarCollapsed = !isSidebarCollapsed;
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('sidebarToggleIcon');
+            
+            if (isSidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                icon.classList.add('rotate-180');
+            } else {
+                sidebar.classList.remove('collapsed');
+                icon.classList.remove('rotate-180');
+            }
+            renderSidebar(); 
+        }
+
+        function toggleNotebook(id, event) {
+            if (event) event.stopPropagation();
+            const nb = appData.find(n => n.id === id);
+            if (nb) {
+                nb.isCollapsed = !nb.isCollapsed;
+                saveData();
+                renderSidebar();
+            }
+        }
+
+        async function init() {
+            lucide.createIcons();
+            
+            if (window.api) {
+                if(window.api.getUserConfig) {
+                    userConfig = await window.api.getUserConfig();
+                    applyTheme();
+                    applyTranslations();
+                }
+                if(window.api.getAppData) {
+                    appData = await window.api.getAppData();
+                }
+                
+                window.api.onConfigUpdated && window.api.onConfigUpdated((config) => {
+                    userConfig = config;
+                    applyTheme();
+                    applyTranslations();
+                    renderEditor();
+                });
+            }
+            
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                renderSidebar();
+            });
+
+            renderSidebar();
+            renderEditor();
+        }
+
+        function getFilteredData() {
+            let data = appData.filter(nb => !nb.isDeleted);
+            
+            // Sort Notebooks Alphabetically
+            data.sort((a, b) => a.title.localeCompare(b.title));
+            
+            // Sort Notes Alphabetically
+            data.forEach(nb => {
+                nb.notes.sort((a, b) => {
+                    const titleA = a.blocks.find(blk => blk.type === 'title')?.content || '';
+                    const titleB = b.blocks.find(blk => blk.type === 'title')?.content || '';
+                    return titleA.localeCompare(titleB);
+                });
+            });
+
+            if (!searchQuery) return data;
+            
+            const searchWords = searchQuery.split(' ').filter(w => w.trim().length > 0);
+            
+            return data.map(nb => {
+                const isNbMatch = searchWords.every(word => nb.title.toLowerCase().includes(word));
+                const filteredNotes = nb.notes.filter(note => {
+                    const firstTitleBlock = note.blocks.find(b => b.type === 'title');
+                    const noteTitle = firstTitleBlock ? (firstTitleBlock.content || '').toLowerCase() : '';
+                    
+                    const isNoteTitleMatch = searchWords.every(word => noteTitle.includes(word));
+                    const isContentMatch = note.blocks.some(block => searchWords.every(word => (block.content || '').toLowerCase().includes(word)));
+                    
+                    return isNoteTitleMatch || isContentMatch;
+                });
+
+                if (isNbMatch || filteredNotes.length > 0) {
+                    return { ...nb, notes: isNbMatch ? nb.notes : filteredNotes };
+                }
+                return null;
+            }).filter(Boolean);
+        }
+
+        function renderSidebar() {
+            const container = document.getElementById('notebooksList');
+            container.innerHTML = '';
+
+            const dataToRender = getFilteredData();
+
+            if (dataToRender.length === 0) {
+                container.innerHTML = `<div class="text-sm text-gray-500 text-center py-4">No se encontraron resultados.</div>`;
+                return;
+            }
+
+            dataToRender.forEach(nb => {
+                const isNbCollapsed = nb.isCollapsed || false;
+                const nbDiv = document.createElement('div');
+                nbDiv.className = 'mb-4';
+                
+                if (isSidebarCollapsed) {
+                    nbDiv.innerHTML = `
+                        <div class="flex justify-center mb-2">
+                            <button onclick="toggleSidebar()" title="${nb.title}" class="p-2.5 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors shadow-sm" style="color: ${nb.color || '#60a5fa'};">
+                                <i data-lucide="book" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    nbDiv.innerHTML = `
+                        <div class="flex items-center justify-between group mb-1">
+                            <div class="flex items-center gap-1 text-sm font-semibold text-gray-200 w-full relative">
+                                <button onclick="toggleNotebook('${nb.id}', event)" class="p-0.5 text-gray-400 hover:text-white transition-transform ${isNbCollapsed ? '-rotate-90' : ''}" title="${isNbCollapsed ? 'Expandir' : 'Colapsar'}">
+                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                </button>
+                                <i data-lucide="book" class="w-4 h-4 shrink-0" style="color: ${nb.color || '#60a5fa'};"></i>
+                                <input type="text" class="bg-transparent border-none outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 text-gray-200 w-full truncate uppercase" 
+                                    value="${nb.title}" 
+                                    title="${nb.title}"
+                                    onchange="updateNotebookTitle('${nb.id}', this.value)"
+                                    onclick="(e) => e.stopPropagation()">
+                            </div>
+                            <div class="flex opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+
+                                <button onclick="addNote('${nb.id}')" class="p-1 hover:text-white text-gray-400" title="Añadir Nota">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteNotebook('${nb.id}')" class="p-1 hover:text-red-400 text-gray-400" title="Eliminar Cuaderno">
+                                    <i data-lucide="trash" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="space-y-1 pl-6 border-l border-gray-700 ml-2 mt-2 transition-all ${isNbCollapsed ? 'hidden' : ''}" id="notesList_${nb.id}"></div>
+                    `;
+                }
+                
+                container.appendChild(nbDiv);
+
+                if (!isSidebarCollapsed) {
+                    const notesList = document.getElementById(`notesList_${nb.id}`);
+                    nb.notes.forEach(note => {
+                        const firstTitleBlock = note.blocks.find(b => b.type === 'title');
+                        const noteTitle = firstTitleBlock ? firstTitleBlock.content || t('untitiled') : t('emptyNote');
+                        
+                        const isSelected = activeNoteId === note.id;
+                        const btn = document.createElement('button');
+                        btn.className = `w-full text-left px-2 py-1.5 rounded text-sm truncate transition-colors flex items-center gap-2
+                            ${isSelected ? 'bg-blue-600/20 text-blue-400 font-medium' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'}`;
+                        btn.title = noteTitle;
+                        btn.innerHTML = `
+                            <i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-blue-400' : 'text-gray-500'}"></i>
+                            <span class="truncate">${noteTitle}</span>
+                        `;
+                        btn.onclick = () => selectNote(nb.id, note.id);
+                        notesList.appendChild(btn);
+                    });
+                }
+            });
+
+            lucide.createIcons();
+        }
+
+        async function updateNotebookColor(id, color) {
+            const nb = appData.find(n => n.id === id);
+            if (nb) {
+                nb.color = color;
+                await saveData();
+                renderSidebar();
+            }
+        }
+
+        async function updateActiveNotebookColor(color) {
+            if (activeNotebookId) {
+                await updateNotebookColor(activeNotebookId, color);
+            }
+        }
+
+        // --- DRAG AND DROP LOGIC ---
+        function dragStart(e, blockId) {
+            draggedBlockId = blockId;
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.classList.add('opacity-50');
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const targetBlock = e.target.closest('.block-container');
+            if (targetBlock && targetBlock.id !== `block_container_${draggedBlockId}`) {
+                targetBlock.classList.add('drag-over');
+            }
+        }
+        
+        function dragLeave(e) {
+            const targetBlock = e.target.closest('.block-container');
+            if (targetBlock) {
+                targetBlock.classList.remove('drag-over');
+            }
+        }
+
+        function drop(e, targetBlockId) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            document.querySelectorAll('.block-container').forEach(el => el.classList.remove('drag-over', 'opacity-50'));
+            
+            if (draggedBlockId && draggedBlockId !== targetBlockId) {
+                const nb = appData.find(n => n.id === activeNotebookId);
+                const note = nb?.notes.find(n => n.id === activeNoteId);
+                if (note) {
+                    const draggedIndex = note.blocks.findIndex(b => b.id === draggedBlockId);
+                    const targetIndex = note.blocks.findIndex(b => b.id === targetBlockId);
+                    
+                    if (draggedIndex > -1 && targetIndex > -1) {
+                        const [draggedItem] = note.blocks.splice(draggedIndex, 1);
+                        note.blocks.splice(targetIndex, 0, draggedItem);
+                        saveData();
+                        renderEditor();
+                        if (targetIndex === 0 || draggedIndex === 0) renderSidebar();
+                    }
+                }
+            }
+            draggedBlockId = null;
+        }
+
+        function renderEditor() {
+            const emptyState = document.getElementById('emptyState');
+            const noteEditor = document.getElementById('noteEditor');
+            const breadcrumbs = document.getElementById('breadcrumbs');
+            const deleteNoteBtn = document.getElementById('deleteNoteBtn');
+            const toggleModeBtn = document.getElementById('toggleModeBtn');
+            const addBlocksContainer = document.getElementById('addBlocksContainer');
+            const notebookColorBtn = document.getElementById('notebookColorBtn');
+            const notebookColorPicker = document.getElementById('notebookColorPicker');
+
+            if (!activeNoteId || !activeNotebookId) {
+                emptyState.classList.remove('hidden');
+                noteEditor.classList.add('hidden');
+                breadcrumbs.innerHTML = '';
+                deleteNoteBtn.classList.add('hidden');
+                if (toggleModeBtn) toggleModeBtn.classList.add('hidden');
+                if (notebookColorBtn) notebookColorBtn.classList.add('hidden');
+                return;
+            }
+
+            const nb = appData.find(n => n.id === activeNotebookId);
+            const note = nb?.notes.find(n => n.id === activeNoteId);
+
+            if (!note) {
+                activeNoteId = null;
+                renderEditor();
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            noteEditor.classList.remove('hidden');
+            
+            if (isEditMode) {
+                deleteNoteBtn.classList.remove('hidden');
+                addBlocksContainer.classList.remove('hidden');
+                if (notebookColorBtn) notebookColorBtn.classList.remove('hidden');
+                if (notebookColorPicker && nb) notebookColorPicker.value = nb.color || '#60a5fa';
+                if (toggleModeBtn) {
+                    toggleModeBtn.classList.remove('hidden');
+                    toggleModeBtn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i> <span data-i18n="readMode">${t('readMode')}</span>`;
+                    toggleModeBtn.classList.remove('bg-blue-100', 'text-blue-700', 'dark:bg-blue-900', 'dark:text-blue-300');
+                    toggleModeBtn.classList.add('bg-gray-100', 'text-gray-600', 'dark:bg-gray-800', 'dark:text-gray-300');
+                }
+            } else {
+                deleteNoteBtn.classList.add('hidden');
+                addBlocksContainer.classList.add('hidden');
+                if (notebookColorBtn) notebookColorBtn.classList.add('hidden');
+                if (toggleModeBtn) {
+                    toggleModeBtn.classList.remove('hidden');
+                    toggleModeBtn.innerHTML = `<i data-lucide="edit-2" class="w-4 h-4"></i> <span data-i18n="editMode">${t('editMode')}</span>`;
+                    toggleModeBtn.classList.remove('bg-gray-100', 'text-gray-600', 'dark:bg-gray-800', 'dark:text-gray-300');
+                    toggleModeBtn.classList.add('bg-blue-100', 'text-blue-700', 'dark:bg-blue-900', 'dark:text-blue-300');
+                }
+            }
+
+            const documentTitle = note.blocks.find(b => b.type === 'title')?.content || t('untitiled');
+            breadcrumbs.innerHTML = `
+                <i data-lucide="book" class="w-4 h-4 shrink-0"></i> <span class="truncate max-w-[120px] lg:max-w-xs" title="${nb.title}">${nb.title}</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 mx-1 shrink-0"></i>
+                <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i> <span class="truncate max-w-[120px] lg:max-w-xs font-medium text-gray-700 dark:text-gray-300" title="${documentTitle}">${documentTitle}</span>
+            `;
+
+            const blocksContainer = document.getElementById('blocksContainer');
+            blocksContainer.innerHTML = '';
+
+            note.blocks.forEach((block, index) => {
+                const blockDiv = document.createElement('div');
+                
+                let marginClass = 'mt-2.5';
+                if (index === 0) {
+                    marginClass = '';
+                }
+                
+                blockDiv.className = `group relative flex gap-2 w-full animate-fade-in block-container transition-all ${marginClass}`;
+                blockDiv.id = `block_container_${block.id}`;
+                
+                if (isEditMode) {
+                    blockDiv.setAttribute('draggable', 'true');
+                    blockDiv.ondragstart = (e) => dragStart(e, block.id);
+                    blockDiv.ondragover = (e) => dragOver(e);
+                    blockDiv.ondrop = (e) => drop(e, block.id);
+                    blockDiv.ondragleave = (e) => dragLeave(e);
+                }
+
+                const controlsHtml = isEditMode ? `
+                    <div class="absolute -left-10 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex flex-col gap-1 items-center">
+                        <div class="text-gray-400 block-drag-handle p-1 hover:text-gray-600 dark:hover:text-gray-200">
+                            <i data-lucide="grip-vertical" class="w-4 h-4"></i>
+                        </div>
+                        <button onclick="deleteBlock('${block.id}')" class="text-gray-400 hover:text-red-500 p-1 rounded bg-white dark:bg-dark-surface shadow-sm border dark:border-dark-border">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                ` : '';
+
+                if (block.type === 'title' || block.type === 'paragraph') {
+                    const isMainTitle = index === 0 && block.type === 'title';
+                    const isPara = block.type === 'paragraph';
+                    const textSize = isMainTitle ? 'text-4xl font-bold text-gray-900 dark:text-white uppercase' : (isPara ? 'text-base text-gray-700 dark:text-gray-300' : 'text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-4');
+                    const placeholder = isMainTitle ? t('titlePlaceholder') : t('subtitlePlaceholder');
+                    
+                    if (isEditMode) {
+                        blockDiv.innerHTML = `
+                            ${controlsHtml}
+                            <textarea 
+                                id="block_${block.id}"
+                                class="w-full bg-transparent border-none outline-none resize-none overflow-hidden placeholder-gray-300 dark:placeholder-gray-600 ${textSize}" 
+                                placeholder="${placeholder}"
+                                oninput="updateBlockContent('${block.id}', this.value); autoResize(this)"
+                            >${block.content}</textarea>
+                        `;
+                    } else {
+                        const htmlContent = block.content ? block.content.replace(/\n/g, '<br>') : (isMainTitle ? t('untitiled') : '');
+                        blockDiv.innerHTML = `
+                            <div class="w-full ${textSize} py-2 min-h-[20px] whitespace-pre-wrap">${htmlContent}</div>
+                        `;
+                    }
+                } else if (block.type === 'code') {
+                    if (isEditMode) {
+                        blockDiv.innerHTML = `
+                            ${controlsHtml}
+                            <div class="flex-1 min-w-0 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-inner flex relative">
+                                <div id="lines_${block.id}" class="line-numbers-container bg-gray-100 dark:bg-gray-800 py-4 pl-3 pr-3 text-sm font-mono whitespace-pre flex-shrink-0">1</div>
+                                <textarea 
+                                    id="block_${block.id}"
+                                    class="w-full bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm resize-none outline-none code-scroll whitespace-pre overflow-x-auto" 
+                                    placeholder="${t('codePlaceholder')}"
+                                    oninput="updateBlockContent('${block.id}', this.value); syncCodeBlock('${block.id}')"
+                                    onscroll="syncScroll('${block.id}')"
+                                    onkeydown="handleCodeTab(event)"
+                                >${block.content}</textarea>
+                            </div>
+                            <div class="flex-shrink-0 pt-2 w-8">
+                                <button onclick="copyCode('${block.id}')" class="p-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition opacity-0 group-hover:opacity-100" title="${t('copy')}">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        const linesCount = block.content ? block.content.split('\n').length : 1;
+                        const linesHtml = Array(linesCount).fill(0).map((_, i) => i + 1).join('<br/>');
+                        const sanitizedCode = block.content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        
+                        blockDiv.innerHTML = `
+                            <div class="flex-1 min-w-0 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm flex relative">
+                                <div class="line-numbers-container bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 py-4 pl-3 pr-3 text-sm font-mono whitespace-pre flex-shrink-0 text-gray-400 dark:text-gray-500">${linesHtml}</div>
+                                <pre id="pre_${block.id}" class="w-full bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm overflow-x-auto code-scroll m-0 whitespace-pre"><code>${sanitizedCode}</code></pre>
+                            </div>
+                            <div class="flex-shrink-0 pt-2 w-8">
+                                <button onclick="copyCode('${block.id}')" class="p-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition opacity-0 group-hover:opacity-100" title="${t('copy')}">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+                } else if (block.type === 'image') {
+                    if (isEditMode) {
+                        blockDiv.innerHTML = `
+                            ${controlsHtml}
+                            <div class="w-full flex flex-col gap-2 p-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                    <i data-lucide="image" class="w-4 h-4"></i> ${t('imagePlaceholder')}:
+                                </div>
+                                <div class="flex gap-2">
+                                    <input type="text" 
+                                        id="block_${block.id}"
+                                        class="flex-1 bg-white dark:bg-[#2a2a2a] border border-gray-300 dark:border-gray-600 dark:text-white rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="https://ejemplo.com/imagen.jpg"
+                                        value="${block.content}"
+                                        onchange="processImageBlock('${block.id}', this.value)"
+                                    >
+                                    <button onclick="selectLocalImage('${block.id}')" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 text-gray-700 px-3 py-2 rounded text-sm transition font-medium flex items-center gap-1 shrink-0">
+                                        <i data-lucide="folder-search" class="w-4 h-4"></i> ${t('browse')}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        if (block.content && block.content.trim() !== '') {
+                            const zoomVal = block.zoom || 100;
+                            blockDiv.innerHTML = `
+                                <div class="w-full flex flex-col items-center py-4 group relative">
+                                    <div class="bg-white/95 dark:bg-gray-800/95 backdrop-blur border border-gray-200 dark:border-gray-700 shadow-md px-4 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-3 mb-2 z-10 pointer-events-auto">
+                                        <i data-lucide="image" class="w-4 h-4 text-gray-500 dark:text-gray-400"></i>
+                                        <input type="range" min="10" max="300" value="${zoomVal}" 
+                                            class="w-32 md:w-48 h-1.5 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500" 
+                                            oninput="updateImageZoom('${block.id}', this.value)" title="${t('zoom')}">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">${t('zoom')}</span>
+                                    </div>
+                                    <img id="img_${block.id}" src="${block.content}" alt="Imagen adjunta" 
+                                        class="max-w-full h-auto rounded-lg shadow-md border border-gray-200 dark:border-gray-700 transition-all duration-75" 
+                                        style="max-height: ${6.5 * zoomVal}px; object-fit: contain;" 
+                                        onerror="this.onerror=null; this.innerHTML='<div class=\\'p-4 bg-red-50 dark:bg-red-900/30 text-red-500 border border-red-200 dark:border-red-800 rounded-lg\\'>Error</div>'; this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <div style="display:none;" class="p-4 bg-red-50 dark:bg-red-900/30 text-red-500 border border-red-200 dark:border-red-800 rounded-lg w-full text-center">Error al cargar la imagen.</div>
+                                </div>
+                            `;
+                        } else {
+                            blockDiv.innerHTML = `
+                                <div class="w-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-[#1a1a1a]">
+                                    <i data-lucide="image" class="w-8 h-8 mb-2 opacity-50"></i>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+
+                blocksContainer.appendChild(blockDiv);
+                
+                if (isEditMode) {
+                    setTimeout(() => {
+                        const el = document.getElementById(`block_${block.id}`);
+                        if (el) {
+                            if (block.type === 'title' || block.type === 'paragraph') {
+                                autoResize(el);
+                            } else if (block.type === 'code') {
+                                syncCodeBlock(block.id);
+                            }
+                        }
+                    }, 0);
+                }
+            });
+
+            lucide.createIcons();
+            applyTranslations();
+        }
+
+        async function copyCode(blockId) {
+            const pre = document.getElementById(`pre_${blockId}`);
+            const textarea = document.getElementById(`block_${blockId}`);
+            let textToCopy = '';
+            
+            if (pre) {
+                textToCopy = pre.innerText;
+            } else if (textarea) {
+                textToCopy = textarea.value;
+            }
+            
+            if (textToCopy) {
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                } catch (err) {
+                    console.error('Failed to copy', err);
+                }
+            }
+        }
+
+        function updateImageZoom(blockId, value) {
+            const img = document.getElementById(`img_${blockId}`);
+            if (img) img.style.maxHeight = (6.5 * value) + 'px';
+            
+            const nb = appData.find(n => n.id === activeNotebookId);
+            const note = nb?.notes.find(n => n.id === activeNoteId);
+            if (note) {
+                const block = note.blocks.find(b => b.id === blockId);
+                if (block) {
+                    block.zoom = value;
+                    saveData(); // saves softly without re-rendering editor
+                }
+            }
+        }
+
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+
+        function syncCodeBlock(blockId) {
+            const textarea = document.getElementById(`block_${blockId}`);
+            const linesDiv = document.getElementById(`lines_${blockId}`);
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight > 100 ? textarea.scrollHeight : 100) + 'px';
+            const lines = textarea.value.split('\n').length;
+            const linesHtml = Array(lines).fill(0).map((_, i) => i + 1).join('<br/>');
+            if (linesDiv.dataset.lines != lines) {
+                linesDiv.innerHTML = linesHtml;
+                linesDiv.dataset.lines = lines;
+            }
+        }
+
+        function syncScroll(blockId) {
+            const textarea = document.getElementById(`block_${blockId}`);
+            const linesDiv = document.getElementById(`lines_${blockId}`);
+            linesDiv.style.transform = `translateY(-${textarea.scrollTop}px)`;
+        }
+
+        function handleCodeTab(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                e.target.value = e.target.value.substring(0, start) + "    " + e.target.value.substring(end);
+                e.target.selectionStart = e.target.selectionEnd = start + 4;
+                e.target.dispatchEvent(new Event('input'));
+            }
+        }
+
+        function addNotebook() {
+            const id = generateId();
+            const defaultNoteId = generateId();
+            appData.push({
+                id,
+                title: t('newNotebook').toUpperCase(),
+                isCollapsed: false,
+                color: '#60a5fa',
+                notes: [
+                    {
+                        id: defaultNoteId,
+                        blocks: [
+                            { id: generateId(), type: 'title', content: '' },
+                            { id: generateId(), type: 'paragraph', content: '' },
+                            { id: generateId(), type: 'code', content: '' }
+                        ]
+                    }
+                ]
+            });
+            saveData();
+            if(isSidebarCollapsed) toggleSidebar(); 
+            renderSidebar();
+            selectNote(id, defaultNoteId);
+        }
+
+        function updateNotebookTitle(id, newTitle) {
+            const nb = appData.find(n => n.id === id);
+            if (nb) {
+                nb.title = newTitle.toUpperCase();
+                saveData();
+                renderSidebar();
+                // update breadcrumbs if active
+                if (activeNotebookId === id) renderEditor();
+            }
+        }
+
+        function deleteNotebook(id) {
+            if(confirm(t('deleteNotebookConfirm'))) {
+                const nb = appData.find(n => n.id === id);
+                if (nb) {
+                    nb.isDeleted = true; // Mark as deleted for the trash bin
+                }
+                if (activeNotebookId === id) {
+                    activeNotebookId = null;
+                    activeNoteId = null;
+                    isEditMode = false;
+                }
+                saveData();
+                refreshApp();
+            }
+        }
+
+        function refreshApp() {
+            if (window.api && window.api.relaunchApp) {
+                window.api.relaunchApp();
+            } else {
+                location.reload();
+            }
+        }
+
+        function addNote(notebookId) {
+            const nb = appData.find(n => n.id === notebookId);
+            if (nb) {
+                const newNoteId = generateId();
+                nb.notes.push({
+                    id: newNoteId,
+                    blocks: [
+                        { id: generateId(), type: 'title', content: '' },
+                        { id: generateId(), type: 'code', content: '' }
+                    ]
+                });
+                nb.isCollapsed = false; 
+                saveData();
+                selectNote(notebookId, newNoteId);
+            }
+        }
+
+        function selectNote(notebookId, noteId) {
+            activeNotebookId = notebookId;
+            activeNoteId = noteId;
+            renderSidebar();
+            renderEditor();
+        }
+
+        function deleteActiveNote() {
+            if(confirm(t('deleteNoteConfirm'))) {
+                const nb = appData.find(n => n.id === activeNotebookId);
+                if (nb) {
+                    const note = nb.notes.find(n => n.id === activeNoteId);
+                    if (note && window.api && window.api.deleteImage) {
+                        note.blocks.forEach(block => {
+                            if (block.type === 'image' && block.content) {
+                                window.api.deleteImage(block.content, nb.id);
+                            }
+                        });
+                    }
+                    nb.notes = nb.notes.filter(n => n.id !== activeNoteId);
+                    activeNoteId = null;
+                    isEditMode = false; // Fix: reset edit mode
+                    saveData();
+                    refreshApp();
+                }
+            }
+        }
+
+        function addBlock(type) {
+            const nb = appData.find(n => n.id === activeNotebookId);
+            const note = nb?.notes.find(n => n.id === activeNoteId);
+            if (note) {
+                note.blocks.push({
+                    id: generateId(),
+                    type: type,
+                    content: ''
+                });
+                saveData();
+                renderEditor();
+                if (isEditMode) {
+                    setTimeout(() => {
+                        const newEl = document.getElementById(`block_${note.blocks[note.blocks.length - 1].id}`);
+                        if(newEl) newEl.focus();
+                    }, 50);
+                }
+            }
+        }
+
+        function deleteBlock(blockId) {
+            const nb = appData.find(n => n.id === activeNotebookId);
+            const note = nb?.notes.find(n => n.id === activeNoteId);
+            if (note && note.blocks.length > 1) { 
+                const blockToDelete = note.blocks.find(b => b.id === blockId);
+                if (blockToDelete && blockToDelete.type === 'image' && blockToDelete.content && window.api && window.api.deleteImage) {
+                    window.api.deleteImage(blockToDelete.content, nb.id);
+                }
+                note.blocks = note.blocks.filter(b => b.id !== blockId);
+                saveData();
+                renderEditor();
+                renderSidebar(); 
+            } else {
+                alert(t('blockError'));
+            }
+        }
+
+        function updateBlockContent(blockId, content) {
+            const nb = appData.find(n => n.id === activeNotebookId);
+            const note = nb?.notes.find(n => n.id === activeNoteId);
+            if (note) {
+                const block = note.blocks.find(b => b.id === blockId);
+                if (block) {
+                    // Si es el primer bloque y es de tipo título, forzar mayúsculas
+                    if (note.blocks[0].id === blockId && block.type === 'title') {
+                        content = content.toUpperCase();
+                        const el = document.getElementById(`block_${blockId}`);
+                        if (el && el.value !== content) el.value = content;
+                    }
+                    
+                    block.content = content;
+                    saveData();
+                    
+                    if (note.blocks[0].id === blockId && block.type === 'title') {
+                        renderSidebar();
+                        const breadcrumbs = document.getElementById('breadcrumbs');
+                        if (breadcrumbs) {
+                            breadcrumbs.innerHTML = `
+                                <i data-lucide="book" class="w-4 h-4 shrink-0"></i> <span class="truncate max-w-[120px] lg:max-w-xs" title="${nb.title}">${nb.title}</span>
+                                <i data-lucide="chevron-right" class="w-4 h-4 mx-1 shrink-0"></i>
+                                <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i> <span class="truncate max-w-[120px] lg:max-w-xs font-medium text-gray-700 dark:text-gray-300" title="${content || t('untitiled')}">${content || t('untitiled')}</span>
+                            `;
+                            lucide.createIcons({root: breadcrumbs});
+                        }
+                    }
+                }
+            }
+        }
+
+        async function selectLocalImage(blockId) {
+            if (window.api && window.api.selectImage) {
+                const filePath = await window.api.selectImage();
+                if (filePath) {
+                    processImageBlock(blockId, filePath);
+                }
+            }
+        }
+
+        async function processImageBlock(blockId, urlOrPath) {
+            const input = document.getElementById('block_' + blockId);
+            if (!urlOrPath) {
+                updateBlockContent(blockId, '');
+                return;
+            }
+            if (window.api && window.api.processImage) {
+                const finalPath = await window.api.processImage(urlOrPath, activeNotebookId);
+                if (finalPath) {
+                    if (input) input.value = finalPath;
+                    updateBlockContent(blockId, finalPath);
+                }
+            } else {
+                updateBlockContent(blockId, urlOrPath);
+            }
+        }
+
+        function openSettings() {
+            if (window.api && window.api.openSettingsWindow) {
+                window.api.openSettingsWindow();
+            }
+        }
+        
+        if (window.api && window.api.onAppDataUpdated) {
+            window.api.onAppDataUpdated(async () => {
+                appData = await window.api.getAppData();
+                renderSidebar();
+                renderEditor();
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
