@@ -53,7 +53,7 @@
         textarea { outline: none; }
 
         .sidebar { transition: width 0.3s ease; }
-        .sidebar.collapsed { width: 4.5rem; }
+        .sidebar.collapsed { width: 4.5rem !important; }
         .sidebar.collapsed .hide-on-collapse { display: none !important; }
         .sidebar.collapsed .center-on-collapse { justify-content: center !important; padding-left: 0; padding-right: 0; }
         .show-on-collapse { display: none !important; }
@@ -87,7 +87,7 @@
         <div class="p-4 border-b border-gray-800 center-on-collapse">
             <div class="relative flex items-center justify-center w-full" title="Buscar">
                 <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 hide-on-collapse"></i>
-                <i data-lucide="search" class="w-5 h-5 text-gray-400 hidden show-on-collapse cursor-pointer hover:text-white transition" onclick="toggleSidebar()"></i>
+                <i data-lucide="search" class="w-5 h-5 text-gray-400 hidden show-on-collapse cursor-pointer hover:text-white transition" onclick="openSearch(event)"></i>
                 <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Buscar notas o código..." 
                     class="w-full bg-gray-800 text-sm text-gray-200 rounded-md pl-9 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-gray-500 hide-on-collapse dark:bg-[#1a1a1a]">
             </div>
@@ -232,6 +232,17 @@
             renderSidebar(); 
         }
 
+        function openSearch(event) {
+            if (event) event.stopPropagation();
+            if (isSidebarCollapsed) {
+                toggleSidebar();
+            }
+            setTimeout(() => {
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.focus();
+            }, 100);
+        }
+
         function toggleDragMode() {
             isDragEnabled = !isDragEnabled;
             const btn = document.getElementById('toggleDragBtn');
@@ -363,7 +374,7 @@
                                 <button onclick="toggleNotebook('${nb.id}', event)" class="p-0.5 text-gray-400 hover:text-white transition-transform ${isNbCollapsed ? '-rotate-90' : ''}" title="${isNbCollapsed ? 'Expandir' : 'Colapsar'}">
                                     <i data-lucide="chevron-down" class="w-4 h-4"></i>
                                 </button>
-                                <i data-lucide="book" class="w-4 h-4 shrink-0" style="color: ${nb.color || '#60a5fa'};"></i>
+                                <i data-lucide="book" class="w-4 h-4 shrink-0 cursor-pointer hover:opacity-80 transition-opacity" style="color: ${nb.color || '#60a5fa'};" onclick="toggleNotebook('${nb.id}', event)"></i>
                                 <input type="text" class="bg-transparent border-none outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 text-gray-200 w-full truncate uppercase" 
                                     value="${nb.title}" 
                                     title="${nb.title}"
@@ -401,7 +412,10 @@
                             <i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-blue-400' : 'text-gray-500'}"></i>
                             <span class="truncate">${noteTitle}</span>
                         `;
-                        btn.onclick = () => selectNote(nb.id, note.id);
+                        btn.onclick = (e) => {
+                            e.stopPropagation();
+                            selectNote(nb.id, note.id);
+                        };
                         notesList.appendChild(btn);
                     });
                 }
@@ -516,8 +530,6 @@
                 if (toggleModeBtn) {
                     toggleModeBtn.classList.remove('hidden');
                     toggleModeBtn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i> <span data-i18n="readMode">${t('readMode')}</span>`;
-                    toggleModeBtn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'dark:bg-blue-700');
-                    toggleModeBtn.classList.add('bg-gray-800', 'text-white', 'hover:bg-gray-900', 'dark:bg-gray-700');
                 }
             } else {
                 deleteNoteBtn.classList.add('hidden');
@@ -527,8 +539,6 @@
                 if (toggleModeBtn) {
                     toggleModeBtn.classList.remove('hidden');
                     toggleModeBtn.innerHTML = `<i data-lucide="edit-2" class="w-4 h-4"></i> <span data-i18n="editMode">${t('editMode')}</span>`;
-                    toggleModeBtn.classList.remove('bg-gray-800', 'text-white', 'hover:bg-gray-900', 'dark:bg-gray-700');
-                    toggleModeBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'dark:bg-blue-700');
                 }
             }
 
@@ -575,7 +585,7 @@
                 if (block.type === 'title' || block.type === 'paragraph') {
                     const isMainTitle = index === 0 && block.type === 'title';
                     const isPara = block.type === 'paragraph';
-                    const textSize = isMainTitle ? 'text-4xl font-bold text-gray-900 dark:text-white uppercase' : (isPara ? 'text-base text-gray-700 dark:text-gray-300' : 'text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-4');
+                    const textSize = isMainTitle ? 'text-4xl font-bold text-gray-900 dark:text-white uppercase' : (isPara ? 'text-base text-gray-700 dark:text-gray-300' : 'text-2xl font-semibold text-gray-800 dark:text-gray-200');
                     const placeholder = isMainTitle ? t('titlePlaceholder') : t('subtitlePlaceholder');
                     
                     if (isEditMode) {
@@ -597,7 +607,7 @@
                 } else if (block.type === 'code') {
                     // For code blocks we put drag/delete at the inner top left, and copy at the outer top right
                     const codeControlsHtml = isEditMode ? `
-                        <div class="absolute top-2 left-2 flex gap-1 z-20 ${isDragEnabled ? '' : 'hidden'}">
+                        <div class="absolute top-1 left-2 flex gap-1 z-20 ${isDragEnabled ? '' : 'hidden'}">
                             <div class="text-gray-400 block-drag-handle p-1 hover:text-gray-600 bg-white/80 dark:bg-black/50 rounded cursor-grab">
                                 <i data-lucide="grip-vertical" class="w-4 h-4"></i>
                             </div>
@@ -608,26 +618,26 @@
                     ` : '';
 
                     const copyButtonHtml = `
-                        <button onclick="copyCode('${block.id}')" class="absolute -right-10 top-0 p-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition opacity-0 group-hover:opacity-100 z-10" title="${t('copy')}">
+                        <button onclick="copyCode('${block.id}')" class="absolute right-2 top-1 p-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition opacity-0 group-hover:opacity-100 z-10" title="${t('copy')}">
                             <i data-lucide="copy" class="w-4 h-4"></i>
                         </button>
                     `;
 
                     if (isEditMode) {
                         blockDiv.innerHTML = `
-                            <div class="flex-1 min-w-0 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-inner flex relative">
+                            <div class="flex-1 min-w-0 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-inner flex relative group">
                                 ${codeControlsHtml}
-                                <div id="lines_${block.id}" class="line-numbers-container bg-gray-100 dark:bg-gray-800 py-4 pl-3 pr-3 text-sm font-mono whitespace-pre flex-shrink-0 ${isDragEnabled ? 'pt-10' : ''}">1</div>
+                                <div id="lines_${block.id}" class="line-numbers-container bg-gray-100 dark:bg-gray-800 pt-[30px] pb-[5px] pl-3 pr-3 text-sm font-mono whitespace-pre flex-shrink-0">1</div>
                                 <textarea 
                                     id="block_${block.id}"
-                                    class="w-full bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm resize-none outline-none code-scroll whitespace-pre overflow-x-auto ${isDragEnabled ? 'pt-10' : ''}" 
+                                    class="w-full bg-transparent text-gray-800 dark:text-gray-200 pt-[30px] pb-[5px] pl-4 pr-14 font-mono text-sm resize-none outline-none code-scroll whitespace-pre overflow-x-auto" 
                                     placeholder="${t('codePlaceholder')}"
                                     oninput="updateBlockContent('${block.id}', this.value); syncCodeBlock('${block.id}')"
                                     onscroll="syncScroll('${block.id}')"
                                     onkeydown="handleCodeTab(event)"
                                 >${block.content}</textarea>
+                                ${copyButtonHtml}
                             </div>
-                            ${copyButtonHtml}
                         `;
                     } else {
                         const linesCount = block.content ? block.content.split('\n').length : 1;
@@ -635,15 +645,21 @@
                         const sanitizedCode = block.content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
                         
                         blockDiv.innerHTML = `
-                            <div class="flex-1 min-w-0 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm flex relative">
-                                <div class="line-numbers-container bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 py-4 pl-3 pr-3 text-sm font-mono whitespace-pre flex-shrink-0 text-gray-400 dark:text-gray-500">${linesHtml}</div>
-                                <pre id="pre_${block.id}" class="w-full bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm overflow-x-auto code-scroll m-0 whitespace-pre"><code>${sanitizedCode}</code></pre>
+                            <div class="flex-1 min-w-0 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm flex relative group">
+                                <div class="line-numbers-container bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 pt-[30px] pb-[5px] pl-3 pr-3 text-sm font-mono whitespace-pre flex-shrink-0 text-gray-400 dark:text-gray-500">${linesHtml}</div>
+                                <pre id="pre_${block.id}" class="w-full bg-transparent text-gray-800 dark:text-gray-200 pt-[30px] pb-[5px] pl-4 pr-16 font-mono text-sm overflow-x-auto code-scroll m-0 whitespace-pre"><code>${sanitizedCode}</code></pre>
+                                ${copyButtonHtml}
                             </div>
-                            ${copyButtonHtml}
                         `;
                     }
                 } else if (block.type === 'image') {
                     if (isEditMode) {
+                        const imagePreviewHtml = (block.content && block.content.trim() !== '') ? `
+                            <div class="mt-2 flex justify-center">
+                                <img src="${block.content}" class="max-h-32 object-contain rounded border border-gray-200 dark:border-gray-700 shadow-sm" alt="Preview" onerror="this.style.display='none'">
+                            </div>
+                        ` : '';
+
                         blockDiv.innerHTML = `
                             ${controlsHtml}
                             <div class="w-full flex flex-col gap-2 p-4 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -662,6 +678,7 @@
                                         <i data-lucide="folder-search" class="w-4 h-4"></i> ${t('browse')}
                                     </button>
                                 </div>
+                                ${imagePreviewHtml}
                             </div>
                         `;
                     } else {
@@ -864,7 +881,11 @@
         function selectNote(notebookId, noteId) {
             activeNotebookId = notebookId;
             activeNoteId = noteId;
-            renderSidebar();
+            if (!isSidebarCollapsed) {
+                toggleSidebar();
+            } else {
+                renderSidebar();
+            }
             renderEditor();
         }
 
