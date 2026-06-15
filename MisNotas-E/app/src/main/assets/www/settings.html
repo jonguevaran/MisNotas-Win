@@ -26,15 +26,40 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+            padding-left: var(--safe-area-left, 0px);
+            padding-right: var(--safe-area-right, 0px);
+            padding-bottom: var(--nav-bar-height, 0px);
+        }
+        #statusBarPlaceholder {
+            height: var(--status-bar-height, 0px);
+            background-color: #ffffff;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            z-index: 100;
+        }
+        .dark #statusBarPlaceholder {
+            background-color: #1a1a1a;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 dark:bg-dark-bg dark:text-dark-text h-screen overflow-y-auto p-6 transition-colors duration-300">
+<body class="bg-gray-50 text-gray-800 dark:bg-dark-bg dark:text-dark-text h-screen overflow-y-auto p-4 md:p-6 transition-colors duration-300">
+    <div id="statusBarPlaceholder"></div>
+    <!-- Espaciador para la barra de estado -->
+    <div class="w-full shrink-0" style="height: var(--status-bar-height, 0px);"></div>
+
     <div class="max-w-3xl mx-auto flex flex-col min-h-full">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-8" data-i18n="settingsTitle">
-            <i data-lucide="settings" class="w-6 h-6 text-gray-600 dark:text-gray-400"></i>
-            Configuraciones
-        </h1>
+        <div class="flex items-center justify-between mb-8 mt-[25px]">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2" data-i18n="settingsTitle">
+                <i data-lucide="settings" class="w-6 h-6 text-gray-600 dark:text-gray-400"></i>
+                Configuraciones
+            </h1>
+            <button onclick="window.location.href='index.html'" class="p-2 bg-gray-200 dark:bg-gray-800 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 transition" title="Cerrar">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
 
         <div class="space-y-8 flex-1">
             <!-- Preferencias -->
@@ -57,10 +82,11 @@
                         <select id="themeSelect" onchange="updateConfig()" class="w-full bg-gray-100 dark:bg-[#2a2a2a] border border-gray-300 dark:border-gray-600 dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="light" data-i18n="themeLight">Claro</option>
                             <option value="dark" data-i18n="themeDark">Oscuro</option>
+                            <option value="system" data-i18n="themeSystem">Sistema</option>
                         </select>
                     </div>
                     <div class="col-span-1 md:col-span-2 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
-                        <button onclick="refreshApp()" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition shadow-sm">
+                        <button onclick="refreshApp()" class="flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md text-sm font-medium transition shadow-sm">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                             <span data-i18n="refresh">Recargar Aplicación</span>
                         </button>
@@ -77,21 +103,31 @@
                 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-i18n="dbLocation">Ubicación física de la base de datos (SQLite)</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="dbPathInput" readonly class="flex-1 bg-gray-100 dark:bg-[#2a2a2a] border border-gray-300 dark:border-gray-600 dark:text-gray-300 rounded-md px-3 py-2 text-sm text-gray-600 focus:outline-none">
-                            <button onclick="changeDbPath()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition font-medium whitespace-nowrap" data-i18n="changePath">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-i18n="dbLocation">Cambiar ubicacion de la base de datos</label>
+                        <div class="flex flex-col gap-2">
+                            <input type="text" id="dbPathInput" readonly class="w-full bg-gray-100 dark:bg-[#2a2a2a] border border-gray-300 dark:border-gray-600 dark:text-gray-300 rounded-md px-3 py-2 text-sm text-gray-600 focus:outline-none">
+                            <button onclick="changeDbPath()" class="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm transition font-medium" data-i18n="changePath">
                                 Cambiar Ubicación
                             </button>
                         </div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" data-i18n="dbWarning">Si cambias la ruta, la base de datos actual se moverá a la nueva ubicación seleccionada.</p>
                     </div>
 
+                    <div class="pt-4 border-t border-gray-100 dark:border-gray-700">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-i18n="imageLocation">Cambiar ubicacion de las imagenes</label>
+                        <div class="flex flex-col gap-2">
+                            <input type="text" id="imageDirInput" readonly class="w-full bg-gray-100 dark:bg-[#2a2a2a] border border-gray-300 dark:border-gray-600 dark:text-gray-300 rounded-md px-3 py-2 text-sm text-gray-600 focus:outline-none">
+                            <button onclick="changeImageDir()" class="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm transition font-medium" data-i18n="changePath">
+                                Cambiar Ubicación
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-4">
-                        <button onclick="document.getElementById('importFile').click()" class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition text-sm font-medium">
+                        <button onclick="document.getElementById('importFile').click()" class="flex-1 flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300 py-2 px-4 rounded-md transition text-sm font-medium">
                             <i data-lucide="download" class="w-4 h-4"></i> <span data-i18n="import">Importar JSON</span>
                         </button>
-                        <button onclick="exportData()" class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition text-sm font-medium">
+                        <button onclick="exportData()" class="flex-1 flex items-center justify-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 py-2 px-4 rounded-md transition text-sm font-medium">
                             <i data-lucide="upload" class="w-4 h-4"></i> <span data-i18n="export">Exportar JSON</span>
                         </button>
                         <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
@@ -117,18 +153,19 @@
         </div>
 
         <footer class="mt-12 text-center text-xs text-gray-400 dark:text-gray-500 pb-4">
-            Una app desarrollada por Ender J. Guevara N., de código abierto para todos
+            una app desarrollada por Ender Jonel Guevara Narea, de codigo abierto para todos
         </footer>
     </div>
 
+    <script src="android-api.js"></script>
     <script>
         let appData = [];
         let userConfig = { language: 'es', theme: 'light' };
 
         const translations = {
-            es: { settingsTitle: "Configuraciones", preferencesTitle: "Preferencias", language: "Idioma", theme: "Tema", themeLight: "Claro", themeDark: "Oscuro", refresh: "Recargar Aplicación", storageTitle: "Base de Datos y Almacenamiento", dbLocation: "Ubicación física de la base de datos", changePath: "Cambiar Ubicación", dbWarning: "Si cambias la ruta, la base de datos actual se moverá a la nueva ubicación seleccionada.", import: "Importar JSON", export: "Exportar JSON", trashTitle: "Papelera de Reciclaje", emptyTrash: "Vaciar Papelera", trashEmpty: "La papelera está vacía.", restore: "Restaurar", deletePerm: "Eliminar", exportSuccess: "Datos exportados correctamente." },
-            en: { settingsTitle: "Settings", preferencesTitle: "Preferences", language: "Language", theme: "Theme", themeLight: "Light", themeDark: "Dark", refresh: "Refresh Application", storageTitle: "Database and Storage", dbLocation: "Physical Database Location", changePath: "Change Location", dbWarning: "If you change the path, the current database will be moved to the new selected location.", import: "Import JSON", export: "Export JSON", trashTitle: "Recycle Bin", emptyTrash: "Empty Trash", trashEmpty: "Trash is empty.", restore: "Restore", deletePerm: "Delete", exportSuccess: "Data exported successfully." },
-            pt: { settingsTitle: "Configurações", preferencesTitle: "Preferências", language: "Idioma", theme: "Tema", themeLight: "Claro", themeDark: "Escuro", refresh: "Recarregar Aplicativo", storageTitle: "Banco de Dados e Armazenamento", dbLocation: "Localização Física do Banco de Dados", changePath: "Mudar Localização", dbWarning: "Se você alterar o caminho, o banco de dados atual será movido para a nova localização selecionada.", import: "Importar JSON", export: "Exportar JSON", trashTitle: "Lixeira", emptyTrash: "Esvaziar Lixeira", trashEmpty: "A lixeira está vazia.", restore: "Restaurar", deletePerm: "Excluir", exportSuccess: "Dados exportados com sucesso." }
+            es: { settingsTitle: "Configuraciones", preferencesTitle: "Preferencias", language: "Idioma", theme: "Tema", themeLight: "Claro", themeDark: "Oscuro", themeSystem: "Sistema", refresh: "Recargar Aplicación", storageTitle: "Base de Datos y Almacenamiento", dbLocation: "Cambiar ubicacion de la base de datos", imageLocation: "Cambiar ubicacion de las imagenes", changePath: "Cambiar Ubicación", dbWarning: "Si cambias la ruta, la base de datos actual se moverá a la nueva ubicación seleccionada.", import: "Importar JSON", export: "Exportar JSON", trashTitle: "Papelera de Reciclaje", emptyTrash: "Vaciar Papelera", trashEmpty: "La papelera está vacía.", restore: "Restaurar", deletePerm: "Eliminar", exportSuccess: "Datos exportados correctamente." },
+            en: { settingsTitle: "Settings", preferencesTitle: "Preferences", language: "Language", theme: "Theme", themeLight: "Light", themeDark: "Dark", themeSystem: "System", refresh: "Refresh Application", storageTitle: "Database and Storage", dbLocation: "Change database location", imageLocation: "Change image location", changePath: "Change Location", dbWarning: "If you change the path, the current database will be moved to the new selected location.", import: "Import JSON", export: "Export JSON", trashTitle: "Recycle Bin", emptyTrash: "Empty Trash", trashEmpty: "Trash is empty.", restore: "Restore", deletePerm: "Delete", exportSuccess: "Data exported successfully." },
+            pt: { settingsTitle: "Configurações", preferencesTitle: "Preferências", language: "Idioma", theme: "Tema", themeLight: "Claro", themeDark: "Escuro", themeSystem: "Sistema", refresh: "Recarregar Aplicativo", storageTitle: "Banco de Datos e Armazenamento", dbLocation: "Mudar localização do banco de datos", imageLocation: "Mudar localização das imágenes", changePath: "Mudar Localização", dbWarning: "Se você alterar o camino, o banco de datos atual será movido para a nueva ubicación seleccionada.", import: "Importar JSON", export: "Exportar JSON", trashTitle: "Lixeira", emptyTrash: "Esvaziar Lixeira", trashEmpty: "A lixeira está vazia.", restore: "Restaurar", deletePerm: "Excluir", exportSuccess: "Dados exportados com sucesso." }
         };
 
         function t(key) {
@@ -145,12 +182,31 @@
         }
 
         function applyTheme() {
+            let isDark = false;
             if (userConfig.theme === 'dark') {
+                isDark = true;
+            } else if (userConfig.theme === 'system') {
+                isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+
+            if (isDark) {
                 document.documentElement.classList.add('dark');
             } else {
                 document.documentElement.classList.remove('dark');
             }
+
+            // Actualizar iconos de la barra de estado (iconos oscuros para fondo claro)
+            if (window.api && window.api.setStatusBarDarkIcons) {
+                window.api.setStatusBarDarkIcons(!isDark);
+            }
         }
+
+        // Escuchar cambios en el tema del sistema automáticamente
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (userConfig.theme === 'system') {
+                applyTheme();
+            }
+        });
 
         async function init() {
             lucide.createIcons();
@@ -175,6 +231,14 @@
                 if (window.api.getAppData) {
                     appData = await window.api.getAppData();
                     renderTrash();
+                }
+
+                // Image Dir
+                if (window.api.getImageDir) {
+                    const imgDir = await window.api.getImageDir();
+                    if (document.getElementById('imageDirInput')) {
+                        document.getElementById('imageDirInput').value = imgDir || "Memoria Interna (img/)";
+                    }
                 }
             }
         }
@@ -275,6 +339,16 @@
             }
         }
 
+        async function changeImageDir() {
+            if (window.api && window.api.changeImageDir) {
+                const newDir = await window.api.changeImageDir();
+                if (newDir) {
+                    document.getElementById('imageDirInput').value = newDir;
+                    alert('El directorio de imágenes ha sido actualizado correctamente.');
+                }
+            }
+        }
+
         async function exportData() {
             if (window.api && window.api.exportData) {
                 const success = await window.api.exportData(appData);
@@ -292,15 +366,16 @@
             reader.onload = async function(e) {
                 try {
                     const parsedData = JSON.parse(e.target.result);
-                    if (Array.isArray(parsedData) && parsedData[0] && parsedData[0].hasOwnProperty('notes')) {
+                    // Validación más flexible de la estructura
+                    if (Array.isArray(parsedData)) {
                         appData = parsedData;
                         if (window.api && window.api.saveAppData) {
                             await window.api.saveAppData(appData);
                         }
                         renderTrash();
-                        alert('Datos importados correctamente.');
+                        alert('Datos importados correctamente. Se recomienda recargar la aplicación.');
                     } else {
-                        throw new Error("Estructura JSON inválida.");
+                        throw new Error("Estructura JSON inválida. Se esperaba un Array.");
                     }
                 } catch (error) {
                     alert('Error al importar: ' + error.message);

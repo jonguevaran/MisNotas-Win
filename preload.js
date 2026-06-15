@@ -22,8 +22,8 @@ contextBridge.exposeInMainWorld('api', {
     
     // File Selection
     selectImage: () => ipcRenderer.invoke('select-image'),
-    processImage: (url, nbId) => ipcRenderer.invoke('process-image', url, nbId),
-    deleteImage: (fileUrl, nbId) => ipcRenderer.invoke('delete-image', fileUrl, nbId),
+    processImage: (url, nbId, noteId) => ipcRenderer.invoke('process-image', url, nbId, noteId),
+    deleteImage: (fileUrl, nbId, noteId) => ipcRenderer.invoke('delete-image', fileUrl, nbId, noteId),
     
     // Deletion
     permanentDeleteNotebook: (nbId) => ipcRenderer.invoke('permanent-delete-notebook', nbId),

@@ -57,7 +57,7 @@ function saveDB() {
 
 function getWorkspacesDir() {
     const dbDir = path.dirname(dbPath);
-    const workspacesDir = path.join(dbDir, 'notebooks');
+    const workspacesDir = path.join(dbDir, 'data');
     if (!fs.existsSync(workspacesDir)) {
         fs.mkdirSync(workspacesDir, { recursive: true });
     }
@@ -134,13 +134,27 @@ app.whenReady().then(async () => {
           let notes = [];
           if (row.folderName) {
               const folderPath = path.join(getWorkspacesDir(), row.folderName);
-              const dataFilePath = path.join(folderPath, 'data.json');
               
-              if (fs.existsSync(dataFilePath)) {
+              if (fs.existsSync(folderPath)) {
                   try {
-                      notes = JSON.parse(fs.readFileSync(dataFilePath, 'utf8'));
+                      const files = fs.readdirSync(folderPath);
+                      for (const file of files) {
+                          if (file.endsWith('.json') && file !== 'data.json') {
+                              try {
+                                  const noteData = JSON.parse(fs.readFileSync(path.join(folderPath, file), 'utf8'));
+                                  notes.push(noteData);
+                              } catch (e) {
+                                  console.error("Error parsing note", file, e);
+                              }
+                          }
+                      }
+                      
+                      const oldDataFilePath = path.join(folderPath, 'data.json');
+                      if (notes.length === 0 && fs.existsSync(oldDataFilePath)) {
+                          notes = JSON.parse(fs.readFileSync(oldDataFilePath, 'utf8'));
+                      }
                   } catch(e) {
-                      console.error("Error reading data.json for notebook", row.id);
+                      console.error("Error reading notes for notebook", row.id, e);
                   }
               }
           }
@@ -179,12 +193,46 @@ app.whenReady().then(async () => {
           if (!fs.existsSync(folderPath)) {
               fs.mkdirSync(folderPath, { recursive: true });
           }
-          const imgPath = path.join(folderPath, 'img');
-          if (!fs.existsSync(imgPath)) {
-              fs.mkdirSync(imgPath, { recursive: true });
+          
+          if (nb.notes) {
+              const currentNoteIds = new Set(nb.notes.map(n => n.id));
+              
+              if (fs.existsSync(folderPath)) {
+                  const files = fs.readdirSync(folderPath);
+                  for (const file of files) {
+                      if (file.endsWith('.json') && file !== 'data.json') {
+                          // extract note.id from the end of the filename if possible, 
+                          // or just ignore deletion logic for now to be safe, 
+                          // but to prevent orphans, we should delete. Let's rely on deleteActiveNote to do cleanup 
+                          // instead of automatic sweep here, or we sweep properly if we embedded id in filename.
+                          const isOrphan = !Array.from(currentNoteIds).some(id => file.includes(id));
+                          if (isOrphan) {
+                              try { fs.unlinkSync(path.join(folderPath, file)); } catch (e) {}
+                          }
+                      }
+                  }
+              }
+
+              nb.notes.forEach(note => {
+                  const noteTitleBlock = note.blocks.find(b => b.type === 'title');
+                  let noteName = note.id; 
+                  if (noteTitleBlock && noteTitleBlock.content) {
+                      noteName = noteTitleBlock.content.replace(/[^a-z0-9\-_]/gi, '_').substring(0, 50);
+                  } else {
+                      noteName = "untitled";
+                  }
+                  if (!noteName) noteName = "untitled";
+                  
+                  const safeName = `${noteName}_${note.id}`;
+                  const notePath = path.join(folderPath, safeName + '.json');
+                  fs.writeFileSync(notePath, JSON.stringify(note, null, 2), 'utf8');
+              });
           }
           
-          fs.writeFileSync(path.join(folderPath, 'data.json'), JSON.stringify(nb.notes || [], null, 2), 'utf8');
+          const oldDataPath = path.join(folderPath, 'data.json');
+          if (fs.existsSync(oldDataPath)) {
+              try { fs.unlinkSync(oldDataPath); } catch (e) {}
+          }
       });
       stmt.free();
       saveDB();
@@ -288,8 +336,8 @@ app.whenReady().then(async () => {
       return null;
   });
 
-  ipcMain.handle('process-image', async (event, urlOrPath, notebookId) => {
-      if (!urlOrPath || !notebookId) return null;
+  ipcMain.handle('process-image', async (event, urlOrPath, notebookId, noteId) => {
+      if (!urlOrPath || !notebookId || !noteId) return null;
       
       const stmt = db.prepare("SELECT folderName FROM notebooks WHERE id = ?");
       stmt.bind([notebookId]);
@@ -300,7 +348,21 @@ app.whenReady().then(async () => {
       stmt.free();
       if (!folderName) return urlOrPath;
 
-      const imgDir = path.join(getWorkspacesDir(), folderName, 'img');
+      // Extract note title from appData to name the img directory if possible
+      // Actually we just use noteId in the backend, but let's try to parse the current folder to find the note title if needed.
+      // Easiest is just to use noteId-img or "img-" + noteId to avoid complex lookup, but requirement is "nombreDeNota-img".
+      // Let's lookup note title from the note files.
+      const folderPath = path.join(getWorkspacesDir(), folderName);
+      let noteTitle = noteId;
+      if (fs.existsSync(folderPath)) {
+          const files = fs.readdirSync(folderPath);
+          const noteFile = files.find(f => f.includes(noteId) && f.endsWith('.json'));
+          if (noteFile) {
+              noteTitle = noteFile.split('_' + noteId)[0];
+          }
+      }
+
+      const imgDir = path.join(getWorkspacesDir(), folderName, `${noteTitle}-img`);
       const normalizedImgDir = imgDir.replace(/\\/g, '/');
       if (urlOrPath.includes(normalizedImgDir) || urlOrPath.includes(encodeURI(normalizedImgDir))) {
           return urlOrPath;

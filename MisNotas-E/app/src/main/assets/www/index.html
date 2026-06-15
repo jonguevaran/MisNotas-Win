@@ -28,6 +28,9 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            padding-left: var(--safe-area-left, 0px);
+            padding-right: var(--safe-area-right, 0px);
+            padding-bottom: var(--nav-bar-height, 0px);
         }
         .font-mono {
             font-family: 'Fira Code', monospace;
@@ -52,13 +55,38 @@
         
         textarea { outline: none; }
 
-        .sidebar { transition: width 0.3s ease; }
-        .sidebar.collapsed { width: 4.5rem; }
+        .sidebar { transition: transform 0.3s ease, width 0.3s ease; visibility: visible; }
+        .sidebar.collapsed { width: 0; transform: translateX(-100%); visibility: hidden; }
         .sidebar.collapsed .hide-on-collapse { display: none !important; }
-        .sidebar.collapsed .center-on-collapse { justify-content: center !important; padding-left: 0; padding-right: 0; }
-        .show-on-collapse { display: none !important; }
-        .sidebar.collapsed .show-on-collapse { display: flex !important; }
-        .sidebar.collapsed .px-col { padding-left: 0.5rem; padding-right: 0.5rem; }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 15;
+        }
+        .sidebar:not(.collapsed) ~ .sidebar-overlay {
+            display: block;
+        }
+
+        #statusBarPlaceholder {
+            height: var(--status-bar-height, 0px);
+            background-color: #ffffff;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            z-index: 100;
+        }
+        .dark #statusBarPlaceholder {
+            background-color: #1a1a1a;
+        }
+
+        /* Normalización de espaciados en bloques del editor */
+        .block-container {
+            margin-top: 0.4rem !important;
+            margin-bottom: 0.4rem !important;
+        }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
@@ -73,22 +101,27 @@
 </head>
 <body class="h-screen w-full flex bg-gray-50 text-gray-800 dark:bg-dark-bg dark:text-dark-text overflow-hidden transition-colors duration-300">
 
+    <div id="statusBarPlaceholder"></div>
+
+    <!-- Overlay para cerrar sidebar -->
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <!-- Sidebar -->
-    <aside id="sidebar" onclick="if(isSidebarCollapsed) toggleSidebar()" class="sidebar w-72 bg-gray-900 text-gray-300 dark:bg-[#0a0a0a] flex flex-col h-full shrink-0 border-r border-gray-800 relative z-20 transition-colors duration-300 cursor-pointer">
+    <aside id="sidebar" class="sidebar w-72 bg-gray-900 text-gray-300 dark:bg-[#0a0a0a] flex flex-col h-full shrink-0 border-r border-gray-800 fixed lg:relative z-20 transition-all duration-300 shadow-2xl">
+        <!-- Espaciador para la barra de estado dentro de la sidebar -->
+        <div class="w-full shrink-0 bg-white dark:bg-[#1a1a1a]" style="height: var(--status-bar-height, 0px);"></div>
 
-
-        <!-- Cabecera Sidebar -->
-        <div class="p-4 border-b border-gray-800 flex items-center center-on-collapse whitespace-nowrap overflow-hidden">
+        <!-- Cabecera Sidebar (Normalizada) -->
+        <div class="h-16 px-4 border-b border-gray-800 flex items-center whitespace-nowrap overflow-hidden shrink-0">
             <i data-lucide="code-2" class="text-blue-500 w-6 h-6 shrink-0"></i>
             <h1 class="text-xl font-bold text-white ml-2 hide-on-collapse">MisNotas-E</h1>
         </div>
 
         <!-- Buscador -->
-        <div class="p-4 border-b border-gray-800 center-on-collapse">
+        <div class="p-4 border-b border-gray-800 shrink-0">
             <div class="relative flex items-center justify-center w-full" title="Buscar">
                 <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 hide-on-collapse"></i>
-                <i data-lucide="search" class="w-5 h-5 text-gray-400 hidden show-on-collapse cursor-pointer hover:text-white transition" onclick="toggleSidebar()"></i>
-                <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Buscar notas o código..." 
+                <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Buscar notas o código..."
                     class="w-full bg-gray-800 text-sm text-gray-200 rounded-md pl-9 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-gray-500 hide-on-collapse dark:bg-[#1a1a1a]">
             </div>
         </div>
@@ -99,7 +132,7 @@
         </div>
 
         <!-- Acciones Inferiores -->
-        <div class="p-4 mt-auto space-y-2 border-t border-gray-800">
+        <div class="p-4 mb-6 mt-auto space-y-2 border-t border-gray-800 shrink-0">
             <button onclick="addNotebook()" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors flex items-center justify-center font-medium shadow-md">
                 <i data-lucide="folder-plus" class="w-5 h-5"></i>
                 <span class="ml-2 hide-on-collapse" data-i18n="newNotebook">Nuevo Cuaderno</span>
@@ -112,12 +145,21 @@
     </aside>
 
     <!-- Área Principal (Editor) -->
-    <main class="flex-1 flex flex-col h-full bg-white dark:bg-[#121212] relative overflow-hidden transition-colors duration-300">
-        <header class="h-14 border-b border-gray-200 dark:border-[#333333] flex items-center px-6 justify-between bg-white dark:bg-[#1a1a1a] shrink-0 z-10 transition-colors duration-300" id="editorHeader">
-            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 truncate" id="breadcrumbs">
-                <!-- Renderizado por JS -->
+    <main class="flex-1 flex flex-col h-full bg-white dark:bg-[#121212] relative overflow-hidden transition-colors duration-300" onclick="handleMainClick()">
+        <!-- Espaciador para la barra de estado dentro del panel derecho -->
+        <div class="w-full shrink-0 bg-white dark:bg-[#1a1a1a]" style="height: var(--status-bar-height, 0px);"></div>
+
+        <header class="h-16 border-b border-gray-200 dark:border-[#333333] flex items-center px-4 justify-between bg-white dark:bg-[#1a1a1a] shrink-0 z-10 transition-colors duration-300" id="editorHeader">
+            <div class="flex items-center gap-3 min-w-0">
+                <!-- Botón de Menú Hamburguesa -->
+                <button onclick="event.stopPropagation(); toggleSidebar();" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition shrink-0">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 truncate" id="breadcrumbs">
+                    <!-- Renderizado por JS -->
+                </div>
             </div>
-            <div class="flex items-center gap-2 shrink-0 ml-4">
+            <div class="flex items-center gap-4 shrink-0 ml-2">
                 <button id="toggleModeBtn" onclick="toggleEditMode()" class="hidden flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition">
                     <i data-lucide="eye" class="w-4 h-4"></i> <span data-i18n="readMode">Lectura</span>
                 </button>
@@ -125,9 +167,6 @@
                     <i data-lucide="palette" class="w-4 h-4"></i>
                     <input type="color" id="notebookColorPicker" class="absolute opacity-0 w-0 h-0" onchange="updateActiveNotebookColor(this.value)">
                 </label>
-                <button id="toggleDragBtn" onclick="toggleDragMode()" class="hidden text-orange-500 hover:text-orange-700 p-2 rounded-md hover:bg-orange-50 dark:hover:bg-orange-900/20 transition" title="Arrastrar Objetos">
-                    <i data-lucide="hand" class="w-4 h-4"></i>
-                </button>
                 <button id="deleteNoteBtn" onclick="deleteActiveNote()" class="hidden text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
@@ -142,30 +181,31 @@
                 <p class="text-sm mt-2" data-i18n="emptyStateDesc">Agrupa tus notas en cuadernos y organiza tu código.</p>
             </div>
             
-            <div id="noteEditor" class="hidden w-[90%] max-w-[90%] mx-auto pb-32" ondblclick="if(!isEditMode) toggleEditMode()">
-                <div id="blocksContainer" class="">
+            <div id="noteEditor" class="hidden w-[95%] max-w-full mx-auto pb-32 pt-4">
+                <div id="blocksContainer" class="w-full">
                     <!-- Bloques generados por JS -->
                 </div>
                 
                 <!-- Botones para agregar bloques -->
                 <div id="addBlocksContainer" class="mt-8 pt-6 border-t border-dashed border-gray-200 dark:border-gray-700 flex gap-4 justify-center hidden flex-wrap">
-                    <button onclick="addBlock('title')" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition text-sm font-medium">
-                        <i data-lucide="type" class="w-4 h-4"></i> <span data-i18n="addTitle">Añadir Título</span>
+                    <button onclick="addBlock('title')" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition text-sm font-medium">
+                        <i data-lucide="type" class="w-4 h-4 text-blue-500"></i> <span data-i18n="addTitle">Añadir Título</span>
                     </button>
-                    <button onclick="addBlock('paragraph')" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition text-sm font-medium">
-                        <i data-lucide="align-left" class="w-4 h-4"></i> <span data-i18n="addParagraph">Añadir Párrafo</span>
+                    <button onclick="addBlock('paragraph')" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition text-sm font-medium">
+                        <i data-lucide="align-left" class="w-4 h-4 text-orange-500"></i> <span data-i18n="addParagraph">Añadir Párrafo</span>
                     </button>
-                    <button onclick="addBlock('code')" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition text-sm font-medium">
-                        <i data-lucide="code" class="w-4 h-4"></i> <span data-i18n="addCode">Añadir Código</span>
+                    <button onclick="addBlock('code')" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition text-sm font-medium">
+                        <i data-lucide="code" class="w-4 h-4 text-purple-500"></i> <span data-i18n="addCode">Añadir Código</span>
                     </button>
-                    <button onclick="addBlock('image')" class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-sm transition text-sm font-medium">
-                        <i data-lucide="image" class="w-4 h-4"></i> <span data-i18n="addImage">Añadir Imagen</span>
+                    <button onclick="addBlock('image')" class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#1e1e1e] border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition text-sm font-medium">
+                        <i data-lucide="image" class="w-4 h-4 text-emerald-500"></i> <span data-i18n="addImage">Añadir Imagen</span>
                     </button>
                 </div>
             </div>
         </div>
     </main>
 
+    <script src="android-api.js"></script>
     <script>
         // --- ESTADO DE LA APLICACIÓN ---
         let appData = [];
@@ -176,7 +216,6 @@
         let searchQuery = '';
         let isEditMode = false;
         let isSidebarCollapsed = false;
-        let isDragEnabled = false;
         
         let draggedBlockId = null;
 
@@ -200,12 +239,31 @@
         }
 
         function applyTheme() {
+            let isDark = false;
             if (userConfig.theme === 'dark') {
+                isDark = true;
+            } else if (userConfig.theme === 'system') {
+                isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+
+            if (isDark) {
                 document.documentElement.classList.add('dark');
             } else {
                 document.documentElement.classList.remove('dark');
             }
+
+            // Actualizar iconos de la barra de estado (iconos oscuros para fondo claro)
+            if (window.api && window.api.setStatusBarDarkIcons) {
+                window.api.setStatusBarDarkIcons(!isDark);
+            }
         }
+
+        // Escuchar cambios en el tema del sistema automáticamente
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (userConfig.theme === 'system') {
+                applyTheme();
+            }
+        });
 
         const generateId = () => Math.random().toString(36).substr(2, 9);
         
@@ -223,36 +281,23 @@
         function toggleSidebar() {
             isSidebarCollapsed = !isSidebarCollapsed;
             const sidebar = document.getElementById('sidebar');
-            
+            const overlay = document.getElementById('sidebarOverlay');
+
             if (isSidebarCollapsed) {
                 sidebar.classList.add('collapsed');
+                overlay.style.display = 'none';
             } else {
                 sidebar.classList.remove('collapsed');
+                overlay.style.display = 'block';
             }
             renderSidebar(); 
         }
 
-        function toggleDragMode() {
-            isDragEnabled = !isDragEnabled;
-            const btn = document.getElementById('toggleDragBtn');
-            if(isDragEnabled) {
-                btn.classList.add('bg-orange-100', 'dark:bg-orange-900/40');
-            } else {
-                btn.classList.remove('bg-orange-100', 'dark:bg-orange-900/40');
+        function handleMainClick() {
+            if (!isSidebarCollapsed) {
+                toggleSidebar();
             }
-            renderEditor();
         }
-
-        document.addEventListener('click', function(e) {
-            const sidebar = document.getElementById('sidebar');
-            // Si el sidebar no está colapsado y el clic fue fuera del sidebar, y no fue en algún toggle
-            if (!isSidebarCollapsed && !sidebar.contains(e.target)) {
-                // Prevenir el colapso si estamos arrastrando o interactuando con modales/alertas
-                if (!e.target.closest('button, a, input, select, textarea')) {
-                    toggleSidebar();
-                }
-            }
-        });
 
         function toggleNotebook(id, event) {
             if (event) event.stopPropagation();
@@ -267,6 +312,12 @@
         async function init() {
             lucide.createIcons();
             
+            // Forzar sidebar colapsado en móviles al inicio
+            if (window.innerWidth < 1024) {
+                isSidebarCollapsed = true;
+                document.getElementById('sidebar').classList.add('collapsed');
+            }
+
             if (window.api) {
                 if(window.api.getUserConfig) {
                     userConfig = await window.api.getUserConfig();
@@ -481,7 +532,6 @@
             const toggleModeBtn = document.getElementById('toggleModeBtn');
             const addBlocksContainer = document.getElementById('addBlocksContainer');
             const notebookColorBtn = document.getElementById('notebookColorBtn');
-            const toggleDragBtn = document.getElementById('toggleDragBtn');
             const notebookColorPicker = document.getElementById('notebookColorPicker');
 
             if (!activeNoteId || !activeNotebookId) {
@@ -491,7 +541,6 @@
                 deleteNoteBtn.classList.add('hidden');
                 if (toggleModeBtn) toggleModeBtn.classList.add('hidden');
                 if (notebookColorBtn) notebookColorBtn.classList.add('hidden');
-                if (toggleDragBtn) toggleDragBtn.classList.add('hidden');
                 return;
             }
 
@@ -511,24 +560,22 @@
                 deleteNoteBtn.classList.remove('hidden');
                 addBlocksContainer.classList.remove('hidden');
                 if (notebookColorBtn) notebookColorBtn.classList.remove('hidden');
-                if (toggleDragBtn) toggleDragBtn.classList.remove('hidden');
                 if (notebookColorPicker && nb) notebookColorPicker.value = nb.color || '#60a5fa';
                 if (toggleModeBtn) {
                     toggleModeBtn.classList.remove('hidden');
                     toggleModeBtn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i> <span data-i18n="readMode">${t('readMode')}</span>`;
-                    toggleModeBtn.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'dark:bg-blue-700');
-                    toggleModeBtn.classList.add('bg-gray-800', 'text-white', 'hover:bg-gray-900', 'dark:bg-gray-700');
+                    toggleModeBtn.classList.remove('bg-blue-100', 'text-blue-700', 'dark:bg-blue-900', 'dark:text-blue-300');
+                    toggleModeBtn.classList.add('bg-gray-100', 'text-gray-600', 'dark:bg-gray-800', 'dark:text-gray-300');
                 }
             } else {
                 deleteNoteBtn.classList.add('hidden');
                 addBlocksContainer.classList.add('hidden');
                 if (notebookColorBtn) notebookColorBtn.classList.add('hidden');
-                if (toggleDragBtn) toggleDragBtn.classList.add('hidden');
                 if (toggleModeBtn) {
                     toggleModeBtn.classList.remove('hidden');
                     toggleModeBtn.innerHTML = `<i data-lucide="edit-2" class="w-4 h-4"></i> <span data-i18n="editMode">${t('editMode')}</span>`;
-                    toggleModeBtn.classList.remove('bg-gray-800', 'text-white', 'hover:bg-gray-900', 'dark:bg-gray-700');
-                    toggleModeBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'dark:bg-blue-700');
+                    toggleModeBtn.classList.remove('bg-gray-100', 'text-gray-600', 'dark:bg-gray-800', 'dark:text-gray-300');
+                    toggleModeBtn.classList.add('bg-blue-100', 'text-blue-700', 'dark:bg-blue-900', 'dark:text-blue-300');
                 }
             }
 
@@ -544,16 +591,11 @@
 
             note.blocks.forEach((block, index) => {
                 const blockDiv = document.createElement('div');
-                
-                let marginClass = 'mt-2.5';
-                if (index === 0) {
-                    marginClass = '';
-                }
-                
-                blockDiv.className = `group relative flex gap-2 w-full animate-fade-in block-container transition-all ${marginClass}`;
+
+                blockDiv.className = `group relative flex gap-2 w-full animate-fade-in block-container transition-all`;
                 blockDiv.id = `block_container_${block.id}`;
                 
-                if (isEditMode && isDragEnabled) {
+                if (isEditMode) {
                     blockDiv.setAttribute('draggable', 'true');
                     blockDiv.ondragstart = (e) => dragStart(e, block.id);
                     blockDiv.ondragover = (e) => dragOver(e);
@@ -561,8 +603,8 @@
                     blockDiv.ondragleave = (e) => dragLeave(e);
                 }
 
-                const controlsHtml = (isEditMode && isDragEnabled) ? `
-                    <div class="absolute -left-10 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex flex-col gap-1 items-center block-controls">
+                const controlsHtml = isEditMode ? `
+                    <div class="absolute -left-10 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex flex-col gap-1 items-center">
                         <div class="text-gray-400 block-drag-handle p-1 hover:text-gray-600 dark:hover:text-gray-200">
                             <i data-lucide="grip-vertical" class="w-4 h-4"></i>
                         </div>
@@ -595,39 +637,25 @@
                         `;
                     }
                 } else if (block.type === 'code') {
-                    // For code blocks we put drag/delete at the inner top left, and copy at the outer top right
-                    const codeControlsHtml = isEditMode ? `
-                        <div class="absolute top-2 left-2 flex gap-1 z-20 ${isDragEnabled ? '' : 'hidden'}">
-                            <div class="text-gray-400 block-drag-handle p-1 hover:text-gray-600 bg-white/80 dark:bg-black/50 rounded cursor-grab">
-                                <i data-lucide="grip-vertical" class="w-4 h-4"></i>
-                            </div>
-                            <button onclick="deleteBlock('${block.id}')" class="text-gray-400 hover:text-red-500 p-1 bg-white/80 dark:bg-black/50 rounded shadow-sm">
-                                <i data-lucide="x" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    ` : '';
-
-                    const copyButtonHtml = `
-                        <button onclick="copyCode('${block.id}')" class="absolute -right-10 top-0 p-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition opacity-0 group-hover:opacity-100 z-10" title="${t('copy')}">
-                            <i data-lucide="copy" class="w-4 h-4"></i>
-                        </button>
-                    `;
-
                     if (isEditMode) {
                         blockDiv.innerHTML = `
+                            ${controlsHtml}
                             <div class="flex-1 min-w-0 bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-inner flex relative">
-                                ${codeControlsHtml}
-                                <div id="lines_${block.id}" class="line-numbers-container bg-gray-100 dark:bg-gray-800 py-4 pl-3 pr-3 text-sm font-mono whitespace-pre flex-shrink-0 ${isDragEnabled ? 'pt-10' : ''}">1</div>
+                                <div id="lines_${block.id}" class="line-numbers-container bg-gray-100 dark:bg-gray-800 py-4 pl-3 pr-3 text-sm font-mono whitespace-pre flex-shrink-0">1</div>
                                 <textarea 
                                     id="block_${block.id}"
-                                    class="w-full bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm resize-none outline-none code-scroll whitespace-pre overflow-x-auto ${isDragEnabled ? 'pt-10' : ''}" 
+                                    class="w-full bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm resize-none outline-none code-scroll whitespace-pre overflow-x-auto" 
                                     placeholder="${t('codePlaceholder')}"
                                     oninput="updateBlockContent('${block.id}', this.value); syncCodeBlock('${block.id}')"
                                     onscroll="syncScroll('${block.id}')"
                                     onkeydown="handleCodeTab(event)"
                                 >${block.content}</textarea>
                             </div>
-                            ${copyButtonHtml}
+                            <div class="flex-shrink-0 pt-2 w-8">
+                                <button onclick="copyCode('${block.id}')" class="p-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition opacity-0 group-hover:opacity-100" title="${t('copy')}">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         `;
                     } else {
                         const linesCount = block.content ? block.content.split('\n').length : 1;
@@ -639,7 +667,11 @@
                                 <div class="line-numbers-container bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 py-4 pl-3 pr-3 text-sm font-mono whitespace-pre flex-shrink-0 text-gray-400 dark:text-gray-500">${linesHtml}</div>
                                 <pre id="pre_${block.id}" class="w-full bg-transparent text-gray-800 dark:text-gray-200 p-4 font-mono text-sm overflow-x-auto code-scroll m-0 whitespace-pre"><code>${sanitizedCode}</code></pre>
                             </div>
-                            ${copyButtonHtml}
+                            <div class="flex-shrink-0 pt-2 w-8">
+                                <button onclick="copyCode('${block.id}')" class="p-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition opacity-0 group-hover:opacity-100" title="${t('copy')}">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         `;
                     }
                 } else if (block.type === 'image') {
@@ -685,10 +717,10 @@
                             `;
                         } else {
                             blockDiv.innerHTML = `
-                                <div class="w-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-[#1a1a1a]">
-                                    <i data-lucide="image" class="w-8 h-8 mb-2 opacity-50"></i>
-                                </div>
-                            `;
+                            <div class="w-full p-4 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center text-gray-400 dark:text-gray-600 bg-gray-50 dark:bg-[#1a1a1a]">
+                                <i data-lucide="image" class="w-6 h-6 mb-1 opacity-50"></i>
+                            </div>
+                        `;
                         }
                     }
                 }
@@ -851,7 +883,6 @@
                     id: newNoteId,
                     blocks: [
                         { id: generateId(), type: 'title', content: '' },
-                        { id: generateId(), type: 'paragraph', content: '' },
                         { id: generateId(), type: 'code', content: '' }
                     ]
                 });
@@ -876,7 +907,7 @@
                     if (note && window.api && window.api.deleteImage) {
                         note.blocks.forEach(block => {
                             if (block.type === 'image' && block.content) {
-                                window.api.deleteImage(block.content, nb.id, activeNoteId);
+                                window.api.deleteImage(block.content, nb.id);
                             }
                         });
                     }
@@ -915,7 +946,7 @@
             if (note && note.blocks.length > 1) { 
                 const blockToDelete = note.blocks.find(b => b.id === blockId);
                 if (blockToDelete && blockToDelete.type === 'image' && blockToDelete.content && window.api && window.api.deleteImage) {
-                    window.api.deleteImage(blockToDelete.content, nb.id, activeNoteId);
+                    window.api.deleteImage(blockToDelete.content, nb.id);
                 }
                 note.blocks = note.blocks.filter(b => b.id !== blockId);
                 saveData();
@@ -974,7 +1005,7 @@
                 return;
             }
             if (window.api && window.api.processImage) {
-                const finalPath = await window.api.processImage(urlOrPath, activeNotebookId, activeNoteId);
+                const finalPath = await window.api.processImage(urlOrPath, activeNotebookId);
                 if (finalPath) {
                     if (input) input.value = finalPath;
                     updateBlockContent(blockId, finalPath);
