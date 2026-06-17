@@ -1,0 +1,12 @@
+{
+  "name": "alquimico",
+  "version": "1.0.0",
+  "description": "Zcodex Markdown Notes App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^28.0.0"
+  }
+}

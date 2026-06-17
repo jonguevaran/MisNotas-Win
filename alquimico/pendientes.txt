@@ -1,0 +1,3 @@
+implementación de boton de configuración (icono de engranaje)
+ventana emergente con las configuraciones manteniendo el desenfoque detrás
+agregar el texto Creado por Ender J. Guevara N. para la comunidad. en la ventana de configuración en el borde inferior
