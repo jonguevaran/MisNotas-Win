@@ -1,0 +1,20 @@
+--h2 CM
+
+--p - Escalar a CM: 
+    areas de Customer Experience, 
+    Fidelizacion, 
+    Comercial, 
+    Marketing y 
+    Grandes Cuentas.
+     p--
+
+--h2 SAP
+
+--p     Areas de Supply Chain, 
+    Finanzas, 
+    Logistica y 
+    Backoffice.
+
+
+Nota: todo lo que sea de la transaccion de recobro es de sap p--
+

@@ -1,0 +1,34 @@
+--h2 Cambiar Comercial
+
+--precode
+Cambiar iniciales de contrato.
+
+Entrar a CRM al contrato que piden para ver el 
+código de cuenta.
+Abrimos MINC.
+
+Le damos al 1.
+Seleccionas la delegación del contrato.
+Ponemos nuestras iniciales(LFY) y nuestra 
+contraseña(JBL).
+Enter a la fecha.
+
+Le damos al 1
+Le damos al 1
+Le damos al 2
+
+Ponemos el código de cuenta 
+(CRM->Gestión de llamadas> Ponemos 
+el número de contrato y lo buscamos. El código de 
+cuenta es el primer cuadro que sale en datos 
+fiscales).
+Le damos a S.
+Enter
+Pulsamos al 7 (El siete es el campo de comercial).
+
+Cambiamos las iniciales del comercial.
+Enter hasta que pida confirmar cambios.
+
+Tipo de solicitud.
+Contrato-cambiar vendedor
+precode--

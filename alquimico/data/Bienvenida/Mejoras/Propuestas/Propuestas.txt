@@ -1,0 +1,4 @@
+--h1 Esto es un titulo
+--h2 Esto es un subtitulo
+--ulli agrega un nuevo elemento que abra la ventana del explorador con el objetivo de insertar una imagen de manera mas facil para el usuario, por ejemplo cuando el usuario ingrese '--idir' y haga clic en la barra espaciadora, el sistema abrira el explorador en el directorio de la nota/img para que el usuario escoja la umagen, al hacerlo se insertara en zcodex de manera automatica el nombre de la imagen: por ejemplo '--idir -imagen.png--texto- idir--' preparado para que el usuario solo cambie el parametro texto, este comando comodin hara los mismo que la etiqueta img con la diferencia que su funcionalidad es ayudar al usuario a buscar localmente imagenes previamentes preparadas en esa ubicacion
+--mark [ ] Ir al gym mañana

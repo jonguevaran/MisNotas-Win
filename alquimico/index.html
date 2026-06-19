@@ -48,6 +48,57 @@
             font-family: 'Fira Code', monospace;
         }
 
+        .custom-transparent-textarea {
+            color: transparent !important;
+            background: transparent !important;
+        }
+
+        .custom-transparent-textarea::selection {
+            background-color: rgba(139, 92, 246, 0.3);
+            color: transparent;
+        }
+
+        /* Zcodex Syntax Highlighting */
+        .zcodex-parent-tag {
+            background-color: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+            border-radius: 4px;
+        }
+
+        .dark .zcodex-parent-tag {
+            background-color: rgba(139, 92, 246, 0.25);
+            color: #a78bfa; 
+        }
+
+        .zcodex-nested-tag {
+            color: #808000;
+            font-weight: 600;
+        }
+
+        .dark .zcodex-nested-tag {
+            color: #00ff00;
+        }
+
+        .zcodex-independent-tag {
+            background-color: rgba(251, 146, 60, 0.2);
+            color: #ff6700;
+            border-radius: 4px;
+        }
+
+        .dark .zcodex-independent-tag {
+            background-color: rgba(251, 146, 60, 0.25);
+            color: #ff6700;
+        }
+
+        .zcodex-separator {
+            color: #39ff14;
+            font-weight: 600;
+        }
+
+        .dark .zcodex-separator {
+            color: #39ff14;
+        }
+
         /* Scrollbar personalizado */
         ::-webkit-scrollbar {
             width: 6px;
@@ -86,8 +137,8 @@
                 </svg>
             </button>
             <div class="flex items-center space-x-2">
-                <div class="bg-violet-600 text-white p-2 rounded-lg shadow-md">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                <div class="flex items-center justify-center">
+                    <img src="alquimico.ico" alt="Icono" class="w-10 h-10 drop-shadow-md">
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Alquímico</h1>
@@ -139,16 +190,33 @@
                     <span>Nuevo Cuaderno</span>
                 </button>
             </div>
+            <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <input type="text" id="search-input" placeholder="Buscar notas..." class="w-full pl-9 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800/50 border-none rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-violet-500 focus:outline-none transition-shadow">
+                </div>
+            </div>
 
             <!-- Contenedor del arbol de notas -->
             <div class="flex-1 overflow-y-auto p-2 space-y-1" id="tree-view">
                 <!-- Árbol generado por JS -->
             </div>
 
-            <!-- Indicador de guardado -->
-            <div
-                class="p-3 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                <span>Alquímico v1.0.0</span>
+            <!-- Indicador de guardado y Configuración -->
+            <div class="p-3 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                <div class="flex items-center space-x-2 relative z-50">
+                    <button id="btn-settings" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 transition group relative" title="Configuración">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </button>
+                    <button id="btn-refresh" class="p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 transition group relative" title="Refrescar aplicación (Ctrl+R)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+                    </button>
+                    <button id="btn-trash-container" class="p-1.5 rounded hover:bg-red-100 dark:hover:bg-red-900/40 text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition group relative" title="Eliminar cuaderno o categoría">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
                 <span id="save-status" class="flex items-center space-x-1 text-emerald-500">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
@@ -163,8 +231,8 @@
 
             <!-- Barra superior del editor con título y el botón único de modo -->
             <div
-                class="border-b border-slate-200 dark:border-slate-800 px-6 h-[73px] flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/30">
-                <div class="flex items-center w-2/3 group">
+                class="border-b border-slate-200 dark:border-slate-800 px-6 h-[73px] flex items-center justify-start shrink-0 bg-slate-50/50 dark:bg-slate-900/30">
+                <div class="items-center w-2/3 group hidden">
                     <div id="note-title"
                         class="bg-transparent text-xl font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none border-b border-transparent pb-0.5 transition truncate max-w-full">
                         Selecciona una nota</div>
@@ -173,20 +241,29 @@
                     </button>
                 </div>
 
-                <!-- BOTÓN ÚNICO DE ALTERNANCIA (EDICIÓN / LECTURA) -->
-                <button id="btn-toggle-mode"
-                    class="flex items-center space-x-2 bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-950/80 active:bg-violet-200 px-4 py-2 rounded-xl text-sm font-semibold transition border border-violet-200/50 dark:border-violet-900/50 shadow-sm hidden">
-                    <span id="toggle-icon">
-                        <!-- Icono de lectura (predeterminado ya que iniciamos en lectura) -->
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                    </span>
-                    <span id="toggle-text">Modo Lectura</span>
-                </button>
+                <div class="flex items-center space-x-2 hidden" id="note-actions">
+                    <button id="btn-delete-note" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition shadow-sm" title="Eliminar nota">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                    <button id="btn-copy-note" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition shadow-sm" title="Copiar contenido">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </button>
+                    <button id="btn-export-note" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition shadow-sm" title="Exportar a Markdown">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </button>
+                    <button id="btn-normalize-zcodex" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-violet-100 hover:text-violet-600 dark:hover:bg-violet-900/40 dark:hover:text-violet-400 transition shadow-sm" title="Normalizar codigo">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </button>
+                    <button id="btn-check-images" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-pink-100 hover:text-pink-600 dark:hover:bg-pink-900/40 dark:hover:text-pink-400 transition shadow-sm" title="Revisar salud de imágenes">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </button>
+                    <button id="btn-toggle-mode"
+                        class="p-2 rounded-xl bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-950/80 active:bg-violet-200 transition border border-violet-200/50 dark:border-violet-900/50 shadow-sm" title="Modo Lectura">
+                        <span id="toggle-icon">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        </span>
+                    </button>
+                </div>
             </div>
 
             <!-- Contenido dinámico -->
@@ -199,14 +276,25 @@
 
                 <!-- VISTA EDICIÓN -->
                 <div id="editor-container" class="absolute inset-0 p-6 flex flex-col hidden">
-                    <textarea id="markdown-input" placeholder="Comienza a escribir en formato Zcodex..."
-                        class="w-full flex-1 bg-transparent resize-none text-slate-700 dark:text-slate-300 placeholder-slate-400/80 focus:outline-none font-mono text-sm leading-relaxed overflow-y-auto"></textarea>
+                    <div class="relative w-full flex-1 overflow-hidden">
+                        <!-- Backdrop para el resaltado -->
+                        <div id="syntax-backdrop" class="absolute inset-0 w-full h-full code-font text-sm leading-relaxed whitespace-pre-wrap break-words text-slate-700 dark:text-slate-300 overflow-hidden pointer-events-none bg-transparent"></div>
+                        <!-- Textarea interactivo -->
+                        <textarea id="markdown-input" placeholder="Comienza a escribir en formato Zcodex..." spellcheck="false"
+                            class="absolute inset-0 w-full h-full bg-transparent resize-none focus:outline-none code-font text-sm leading-relaxed overflow-y-auto z-10 custom-transparent-textarea caret-slate-900 dark:caret-white m-0 p-0 border-0 outline-none"></textarea>
+                    </div>
+                    <!-- Menú de Autocompletado -->
+                    <div id="autocomplete-popup" class="absolute hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-lg z-50 text-xs overflow-hidden min-w-[250px] top-10 left-10 transition-opacity">
+                        <ul id="autocomplete-list" class="max-h-56 overflow-y-auto py-1">
+                            <!-- Opciones se insertarán aquí -->
+                        </ul>
+                    </div>
                 </div>
 
                 <!-- VISTA LECTURA (RENDERIZADO) -->
                 <div id="preview-container"
                     class="absolute inset-0 p-8 overflow-y-auto hidden bg-slate-50/20 dark:bg-slate-900/10">
-                    <div id="html-output" class="max-w-4xl mx-auto prose dark:prose-invert prose-slate">
+                    <div id="html-output" class="max-w-4xl mx-auto prose dark:prose-invert prose-slate text-slate-500">
                         <!-- El texto en Zcodex renderizado aparecerá aquí -->
                     </div>
                 </div>
@@ -216,7 +304,7 @@
 
         <!-- BARRA LATERAL DERECHA: Cheat Sheet de Zcodex en Español -->
         <aside id="sidebar-right"
-            class="absolute inset-y-0 right-0 w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col z-20 transition-transform duration-300 transform translate-x-full lg:translate-x-0 lg:relative lg:flex shrink-0">
+            class="absolute inset-y-0 right-0 w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-l border-slate-200 dark:border-slate-800 flex flex-col z-20 transition-transform duration-300 transform translate-x-full lg:translate-x-0 lg:relative lg:flex shrink-0">
             <div
                 class="px-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 h-[73px] shrink-0">
                 <div class="flex items-center space-x-2 text-violet-600 dark:text-violet-400">
@@ -239,82 +327,111 @@
             <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
                 <p class="text-slate-500 dark:text-slate-400 mb-2">Haz clic sobre un elemento para insertarlo en el
                     editor:</p>
-                <button onclick="insertTemplate('--h1 Título Principal')"
+                <button onclick="insertTemplate('..h1 Título Principal')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Encabezado 1</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--h1 Texto</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..h1 Texto</span>
                 </button>
-                <button onclick="insertTemplate('--h2 Título Secundario')"
+                <button onclick="insertTemplate('..h2 Título Secundario')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Encabezado 2</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--h2 Texto</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..h2 Texto</span>
                 </button>
-                <button onclick="insertTemplate('--h3 Subtítulo')"
+                <button onclick="insertTemplate('..h3 Subtítulo')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Encabezado 3</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--h3 Texto</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..h3 Texto</span>
                 </button>
-                <button onclick="insertTemplate('--strong Texto en negrita strong--')"
+                <button onclick="insertTemplate('..p\n    \np..')"
+                    class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">Párrafo</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..p Texto p..</span>
+                </button>
+                <button onclick="insertTemplate('..strong Texto en negrita strong..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Negrita</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--strong Texto strong--</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..strong Texto strong..</span>
                 </button>
-                <button onclick="insertTemplate('--em Texto en cursiva em--')"
+                <button onclick="insertTemplate('..em Texto en cursiva em..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Cursiva</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--em Texto em--</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..em Texto em..</span>
                 </button>
-                <button onclick="insertTemplate('--code console.log(&apos;Hola Zcodex&apos;) code--')"
+                <button onclick="insertTemplate('..code console.log(&apos;Hola Zcodex&apos;) code..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Código en línea</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--code Texto code--</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..code Texto code..</span>
                 </button>
-                <button onclick="insertTemplate('--precode\\n// Bloque de código\\nlet variables = 100;\\nprecode--')"
+                <button onclick="insertTemplate('..precode\\n    // Bloque de código\\n    let variables = 100;\\nprecode..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Bloque de código</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--precode Código precode--</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..precode Código precode..</span>
                 </button>
-                <button onclick="insertTemplate('--a -https://google.com--Buscador Google- a--')"
+                <button onclick="insertTemplate('..a ::https://google.com::Buscador Google:: a..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Enlace</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--a -URL--Texto- a--</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..a ::URL::Texto:: a..</span>
                 </button>
                 <button
-                    onclick="insertTemplate('--img -https://images.unsplash.com/photo-1579546929518-9e396f3cc809--Imagen colorida- img--')"
+                    onclick="insertTemplate('..img ::https://images.unsplash.com/photo-1579546929518-9e396f3cc809::Imagen colorida:: img..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Imagen</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--img -URL--Texto- img--</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..img ::URL::Texto:: img..</span>
                 </button>
-                <button onclick="insertTemplate('--blq Una cita reflexiva e importante. blq--')"
+                <button onclick="insertTemplate('..blq\\n    Una cita reflexiva e importante.\\nblq..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Cita (Blockquote)</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--blq Texto blq--</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..blq Texto blq..</span>
                 </button>
-                <button onclick="insertTemplate('--ulli Primer elemento\\n--ulli Segundo elemento')"
+                <button onclick="insertTemplate('..ulli Primer elemento\\n..ulli Segundo elemento')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Lista desordenada</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--ulli Elemento</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..ulli Elemento</span>
                 </button>
-                <button onclick="insertTemplate('--olli Primer elemento\\n--olli Segundo elemento')"
+                <button onclick="insertTemplate('..olli Primer elemento\\n..olli Segundo elemento')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
-                    <span class="font-semibold text-slate-700 dark:text-slate-300">Lista ordenada</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--olli Elemento</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">Listas Ordenadas</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..olli Elemento</span>
                 </button>
-                <button onclick="insertTemplate('\\n--hr\\n')"
+                <button onclick="insertTemplate('\\n..hr\\n')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Línea horizontal</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--hr</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..hr</span>
                 </button>
-                <button onclick="insertTemplate('--br')"
+                <button onclick="insertTemplate('..br')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Salto de línea</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">--br</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..br</span>
                 </button>
-                <button onclick="insertTemplate('\\n// Titulo1 // Titulo2 // Titulo3 //\\n// &lt;- // &lt;-&gt; // -&gt; //\\n// texto // texto // texto //')"
+                <button onclick="insertTemplate('\n// Titulo1 // Titulo2 // Titulo3 //\n// <- // <-> // -> //\n// texto // texto // texto //')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Tabla</span>
                     <span class="code-font text-violet-500 dark:text-violet-400 mt-1">// Titulo1 // Titulo2 // Titulo3 //<br>// &lt;- // &lt;-&gt; // -&gt; //</span>
                 </button>
+
+                <div class="mt-8 border-t border-slate-200 dark:border-slate-800 pt-6 px-1 pb-4">
+                    <h3 class="font-bold text-slate-800 dark:text-white mb-4 text-sm uppercase tracking-wider pl-1">Atajos de Teclado</h3>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex justify-between items-center p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition hover:shadow-md">
+                            <span class="text-slate-600 dark:text-slate-400 font-medium">Alternar panel izquierdo</span>
+                            <span class="font-mono font-semibold bg-slate-50 dark:bg-slate-950 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 shadow-inner flex items-center space-x-1">
+                                <span>Ctrl</span><span>+</span><span>←</span>
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition hover:shadow-md">
+                            <span class="text-slate-600 dark:text-slate-400 font-medium">Alternar panel de ayuda</span>
+                            <span class="font-mono font-semibold bg-slate-50 dark:bg-slate-950 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 shadow-inner flex items-center space-x-1">
+                                <span>Ctrl</span><span>+</span><span>→</span>
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center p-3.5 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm transition hover:shadow-md">
+                            <span class="text-slate-600 dark:text-slate-400 font-medium">Alternar edición/lectura</span>
+                            <span class="font-mono font-semibold bg-slate-50 dark:bg-slate-950 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 shadow-inner flex items-center space-x-1">
+                                <span>Ctrl</span><span>+</span><span>↑</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </aside>
@@ -334,6 +451,96 @@
                     class="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">Cancelar</button>
                 <button id="modal-confirm"
                     class="px-4 py-2 text-sm font-medium bg-violet-600 text-white hover:bg-violet-700 active:bg-violet-800 rounded-lg transition">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Configuración -->
+    <div id="settings-modal" class="fixed inset-0 bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl w-96 max-w-full border border-slate-200 dark:border-slate-800 flex flex-col">
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-4">Configuración</h3>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Directorio de Cuadernos</label>
+                <div class="flex space-x-2">
+                    <input type="text" id="settings-dir-input" readonly
+                        class="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 text-xs">
+                    <button id="btn-select-dir" class="px-3 py-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition" title="Seleccionar directorio">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-auto mb-4">
+                <!-- El botón cerrar ya no es necesario -->
+            </div>
+            
+            <p class="text-[10px] text-center text-slate-400 dark:text-slate-500 mt-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+                Una aplicacion desarrollada por Ender J. Guevara N. para uso libre, 2026
+            </p>
+        </div>
+    </div>
+
+    <!-- Modal Mover Nota -->
+    <div id="move-modal" class="fixed inset-0 bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl w-80 border border-slate-200 dark:border-slate-800">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Mover Nota</h3>
+            
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Cuaderno destino</label>
+                    <select id="move-notebook-select" class="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+                        <option value="">Selecciona un cuaderno</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Categoría destino (Opcional)</label>
+                    <select id="move-category-select" class="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500" disabled>
+                        <option value="">Selecciona una categoría</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button id="move-cancel" class="flex-1 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition">Cancelar</button>
+                <button id="move-confirm" class="flex-1 py-2 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white rounded-lg font-medium transition">Mover</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar Contenedor (Cuaderno o Categoría) -->
+    <div id="delete-container-modal" class="fixed inset-0 bg-slate-900/50 dark:bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl w-80 border border-slate-200 dark:border-slate-800" onclick="event.stopPropagation()">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4 text-red-600 dark:text-red-400 flex items-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                <span>Eliminar Estructura</span>
+            </h3>
+            
+            <p id="delete-container-desc" class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">Selecciona el cuaderno que deseas eliminar permanentemente. <strong class="text-red-500">Esto borrará todas las notas dentro.</strong></p>
+
+            <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg mb-4">
+                <button id="tab-del-notebook" class="flex-1 py-1.5 text-xs font-medium bg-white dark:bg-slate-700 shadow rounded text-slate-800 dark:text-white transition">Cuaderno</button>
+                <button id="tab-del-category" class="flex-1 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition rounded">Categoría</button>
+            </div>
+
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Cuaderno</label>
+                    <select id="delete-notebook-select" class="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="">Selecciona un cuaderno</option>
+                    </select>
+                </div>
+                <div id="delete-category-wrapper" class="hidden">
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Categoría a eliminar</label>
+                    <select id="delete-category-select" class="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" disabled>
+                        <option value="">Selecciona una categoría</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button id="delete-container-cancel" class="flex-1 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition">Cancelar</button>
+                <button id="delete-container-confirm" class="flex-1 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-lg font-medium transition">Eliminar</button>
             </div>
         </div>
     </div>

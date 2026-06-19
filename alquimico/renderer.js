@@ -21,7 +21,7 @@ if (!window.api) {
                 ]
             }
         ],
-        readNote: async () => `--h1 Ejemplos de Sintaxis Zcodex\n\nBienvenido al documento de demostración. Aquí podrás ver todos los recursos visuales que ofrece nuestra sintaxis personalizada.\n\n--h2 Formato de Texto\nPuedes hacer que tus textos destaquen utilizando --strong negritas strong-- o dándole un toque de --em cursiva em--. Además, puedes insertar un salto de línea en medio de un párrafo --br para continuar en la siguiente línea sin crear un nuevo bloque.\n\n--h3 Enlaces e Imágenes\nSi necesitas enlazar a otra página, puedes usar: --a -https://github.com--Enlace a GitHub- a--.\nTambién es fácil incrustar imágenes:\n--img -https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80--Laboratorio Alquímico- img--\n\n--hr\n\n--h2 Listas y Citas\n\nA continuación, una lista de ingredientes alquímicos (desordenada):\n--ulli Piedra filosofal\n--ulli Polvo de estrellas\n--ulli Extracto de luna\n\nY aquí los pasos para la transmutación (lista ordenada):\n--olli Preparar el crisol\n--olli Calentar a fuego lento\n--olli Añadir el material base\n\nA veces es necesario recordar las palabras de los antiguos:\n--blq "Lo que es abajo es como lo que es arriba, y lo que es arriba es como lo que es abajo, para realizar el milagro de una sola cosa." blq--\n\n--hr\n\n--h2 Bloques de Código y Tablas\n\nPara mencionar una variable rápida en un texto, usa código en línea como --code const elixir = true; code--. Para funciones completas, utiliza el bloque de código:\n\n--precode\n// Función de transmutación principal\nfunction transmutar(materiaPrima) {\n    if (materiaPrima === 'Plomo') {\n        return 'Oro';\n    }\n    return materiaPrima;\n}\nconsole.log(transmutar('Plomo'));\nprecode--\n\nFinalmente, puedes estructurar datos usando tablas:\n\n// Titulo1 // Titulo2 // Titulo3 //\n// <- // <-> // -> //\n// texto // texto // texto //\n\n¡Y eso es todo! Empieza a escribir tus propias notas.`,
+        readNote: async () => `..h1 Ejemplos de Sintaxis Zcodex\n\nBienvenido al documento de demostración. Aquí podrás ver todos los recursos visuales que ofrece nuestra sintaxis personalizada.\n\n..h2 Formato de Texto\nPuedes hacer que tus textos destaquen utilizando ..strong negritas strong.. o dándole un toque de ..em cursiva em... Además, puedes insertar un salto de línea en medio de un párrafo ..br para continuar en la siguiente línea sin crear un nuevo bloque.\n\n..h3 Enlaces e Imágenes\nSi necesitas enlazar a otra página, puedes usar: ..a ::https://github.com::Enlace a GitHub:: a...\nTambién es fácil incrustar imágenes:\n..img ::https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80::Laboratorio Alquímico:: img..\n\n..hr\n\n..h2 Listas y Citas\n\nA continuación, una lista de ingredientes alquímicos (desordenada):\n..ulli Piedra filosofal\n..ulli Polvo de estrellas\n..ulli Extracto de luna\n\nY aquí los pasos para la transmutación (lista ordenada):\n..olli Preparar el crisol\n..olli Calentar a fuego lento\n..olli Añadir el material base\n\nA veces es necesario recordar las palabras de los antiguos:\n..blq "Lo que es abajo es como lo que es arriba, y lo que es arriba es como lo que es abajo, para realizar el milagro de una sola cosa." blq..\n\n..hr\n\n..h2 Bloques de Código y Tablas\n\nPara mencionar una variable rápida en un texto, usa código en línea como ..code const elixir = true; code... Para funciones completas, utiliza el bloque de código:\n\n..precode\n// Función de transmutación principal\nfunction transmutar(materiaPrima) {\n    if (materiaPrima === 'Plomo') {\n        return 'Oro';\n    }\n    return materiaPrima;\n}\nconsole.log(transmutar('Plomo'));\nprecode..\n\nFinalmente, puedes estructurar datos usando tablas:\n\n// Titulo1 // Titulo2 // Titulo3 //\n// <- // <-> // -> //\n// texto // texto // texto //\n\n¡Y eso es todo! Empieza a escribir tus propias notas.`,
         saveNote: async () => true,
         createNotebook: async () => true,
         createCategory: async () => true,
@@ -43,14 +43,23 @@ const treeView = document.getElementById('tree-view');
 const btnAddNotebook = document.getElementById('btn-add-notebook');
 const noteTitleEl = document.getElementById('note-title');
 const btnToggleMode = document.getElementById('btn-toggle-mode');
-const toggleText = document.getElementById('toggle-text');
 const toggleIcon = document.getElementById('toggle-icon');
+const noteActions = document.getElementById('note-actions');
+const btnExportNote = document.getElementById('btn-export-note');
+const btnCopyNote = document.getElementById('btn-copy-note');
+const btnNormalizeZcodex = document.getElementById('btn-normalize-zcodex');
+
+const btnSettings = document.getElementById('btn-settings');
+const settingsModal = document.getElementById('settings-modal');
+const settingsDirInput = document.getElementById('settings-dir-input');
+const btnSelectDir = document.getElementById('btn-select-dir');
 
 const editorContainer = document.getElementById('editor-container');
 const previewContainer = document.getElementById('preview-container');
 const emptyState = document.getElementById('empty-state');
 
 const markdownInput = document.getElementById('markdown-input');
+const syntaxBackdrop = document.getElementById('syntax-backdrop');
 const htmlOutput = document.getElementById('html-output');
 const saveStatus = document.getElementById('save-status');
 
@@ -62,10 +71,115 @@ const modalCancel = document.getElementById('modal-cancel');
 const modalConfirm = document.getElementById('modal-confirm');
 let modalCallback = null;
 
+const btnDeleteNote = document.getElementById('btn-delete-note');
+
+const moveModal = document.getElementById('move-modal');
+const moveNotebookSelect = document.getElementById('move-notebook-select');
+const moveCategorySelect = document.getElementById('move-category-select');
+const moveCancel = document.getElementById('move-cancel');
+const moveConfirm = document.getElementById('move-confirm');
+let noteToMovePath = null;
+
+let treeState = {};
+let searchTerm = '';
+
+function normalizeText(text) {
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function escapeHtml(str) {
+    return str
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
+function highlightZcodex(text) {
+    const independentTags = ['h1', 'h2', 'h3', 'hr', 'br', 'ulli', 'olli', 'mark'];
+    let depth = 0;
+    const tagRegex = /(?<!\S)(\.\.(?:h1|h2|h3|hr|br|precode|blq|ulli|olli|img|idir|a|strong|em|code|p|mark))|(?:(h1|h2|h3|hr|br|precode|blq|ulli|olli|img|idir|a|strong|em|code|p|mark)\.\.)|(::)/g;
+    
+    let result = '';
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = tagRegex.exec(text)) !== null) {
+        const before = text.substring(lastIndex, match.index);
+        result += escapeHtml(before);
+        
+        if (match[3]) {
+            result += `<span class="zcodex-separator">::</span>`;
+            lastIndex = tagRegex.lastIndex;
+            continue;
+        }
+
+        const isOpening = !!match[1];
+        const tagName = isOpening ? match[1].substring(2) : match[2];
+        const isIndependent = independentTags.includes(tagName);
+        
+        let spanClass;
+        if (isOpening && isIndependent) {
+            spanClass = 'zcodex-independent-tag';
+        } else {
+            spanClass = depth === 0 ? 'zcodex-parent-tag' : 'zcodex-nested-tag';
+        }
+        
+        if (isOpening) {
+            result += `<span class="${spanClass}">${escapeHtml(match[1])}</span>`;
+            if (!isIndependent) depth++;
+        } else {
+            if (depth > 0) depth--;
+            spanClass = depth === 0 ? 'zcodex-parent-tag' : 'zcodex-nested-tag';
+            result += `<span class="${spanClass}">${escapeHtml(match[0])}</span>`;
+        }
+        lastIndex = tagRegex.lastIndex;
+    }
+    
+    result += escapeHtml(text.substring(lastIndex));
+    if (result.endsWith('\n')) {
+        result += '<br>';
+    }
+    
+    return result;
+}
+
+function updateSyntaxHighlighting() {
+    if (!syntaxBackdrop) return;
+    syntaxBackdrop.innerHTML = highlightZcodex(markdownInput.value);
+}
+
+function matchSearch(name, term) {
+    if (!term) return true;
+    const n = normalizeText(name);
+    const terms = normalizeText(term).split(/\s+/).filter(t => t);
+    return terms.every(t => n.includes(t));
+}
+
+function toggleNode(path, el) {
+    treeState[path] = !treeState[path];
+    el.parentElement.nextElementSibling.classList.toggle('hidden');
+}
+
+
 // Initialization
 async function loadTree() {
+    const config = await window.api.getConfig();
+    if (settingsDirInput) {
+        settingsDirInput.value = config.dataDir;
+    }
     currentTree = await window.api.getTree();
     renderTree();
+
+    const searchInput = document.getElementById('search-input');
+    if (searchInput && !searchInput._listenerAdded) {
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            renderTree();
+        });
+        searchInput._listenerAdded = true;
+    }
 }
 
 function renderTree() {
@@ -81,63 +195,94 @@ function renderTree() {
     }
 
     currentTree.forEach(nb => {
+        const matchedCats = [];
+        let nbMatches = matchSearch(nb.name, searchTerm);
+        let hasAnyMatch = nbMatches;
+
+        nb.children.forEach(child => {
+            if (child.type === 'category') {
+                const matchedNotes = [];
+                let catMatches = matchSearch(child.name, searchTerm);
+                let catHasMatch = catMatches;
+
+                child.children.forEach(note => {
+                    if (matchSearch(note.name, searchTerm) || catMatches || nbMatches) {
+                        matchedNotes.push(note);
+                        catHasMatch = true;
+                        hasAnyMatch = true;
+                    }
+                });
+
+                if (catHasMatch || searchTerm === '') {
+                    matchedCats.push({ ...child, children: matchedNotes.length > 0 ? matchedNotes : child.children });
+                }
+            }
+        });
+
+        if (!hasAnyMatch && searchTerm !== '') return;
+
         const nbEl = document.createElement('div');
         nbEl.className = 'mb-2';
         
         const escapedNbPath = nb.path.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         const escapedNbName = nb.name.replace(/'/g, "\\'");
+        const isNbExpanded = searchTerm !== '' || treeState[nb.path];
 
         const nbItem = document.createElement('div');
-        nbItem.className = 'flex items-center justify-between p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition group';
+        nbItem.className = 'flex items-center justify-between p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition group cursor-pointer';
+        nbItem.onclick = (e) => { if (e.target.closest('button')) return; toggleNode(nb.path, nbItem.firstElementChild); };
         nbItem.innerHTML = `
-            <span class="font-bold flex items-center text-sm truncate cursor-pointer select-none" onclick="this.parentElement.nextElementSibling.classList.toggle('hidden')">
+            <span class="font-bold flex items-center text-sm truncate select-none">
                 <span class="mr-2 text-violet-500">
                     <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4V4zm4 0v16M8 8h8m-8 4h8m-8 4h8"/></svg>
                 </span>
                 ${nb.name}
             </span>
             <div class="hidden group-hover:flex items-center space-x-1">
-                <button title="Renombrar Cuaderno" onclick="promptRename('notebook', '${escapedNbPath}', '${escapedNbName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
+                <button title="Renombrar Cuaderno" onclick="event.stopPropagation(); promptRename('notebook', '${escapedNbPath}', '${escapedNbName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                 </button>
-                <button title="Añadir Categoría" onclick="promptCreateCategory('${escapedNbName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
+                <button title="Añadir Categoría" onclick="event.stopPropagation(); promptCreateCategory('${escapedNbName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 </button>
             </div>
         `;
         
         const nbChildren = document.createElement('div');
-        nbChildren.className = 'ml-3 pl-2 border-l border-slate-200 dark:border-slate-800 mt-1 space-y-1';
+        nbChildren.className = `ml-3 pl-2 border-l border-slate-200 dark:border-slate-800 mt-1 space-y-1 ${isNbExpanded ? '' : 'hidden'}`;
         
-        nb.children.forEach(child => {
+        const catsToRender = searchTerm !== '' ? matchedCats : nb.children;
+        catsToRender.forEach(child => {
             if (child.type === 'category') {
                 const catEl = document.createElement('div');
                 catEl.className = 'mb-1';
                 
                 const escapedCatPath = child.path.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
                 const escapedCatName = child.name.replace(/'/g, "\\'");
+                const isCatExpanded = searchTerm !== '' || treeState[child.path];
 
                 const catItem = document.createElement('div');
-                catItem.className = 'flex items-center justify-between p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition group';
+                catItem.className = 'flex items-center justify-between p-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition group cursor-pointer';
+                catItem.onclick = (e) => { if (e.target.closest('button')) return; toggleNode(child.path, catItem.firstElementChild); };
                 catItem.innerHTML = `
-                    <span class="font-semibold flex items-center text-xs truncate cursor-pointer select-none" onclick="this.parentElement.nextElementSibling.classList.toggle('hidden')">
+                    <span class="font-semibold flex items-center text-xs truncate select-none">
                         <span class="mr-2 text-violet-400">
                             <svg class="w-3.5 h-3.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                         </span>
                         ${child.name}
                     </span>
                     <div class="hidden group-hover:flex items-center space-x-1">
-                        <button title="Renombrar Categoría" onclick="promptRename('category', '${escapedCatPath}', '${escapedCatName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
+                        <button title="Renombrar Categoría" onclick="event.stopPropagation(); promptRename('category', '${escapedCatPath}', '${escapedCatName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                         </button>
-                        <button title="Añadir Nota" onclick="promptCreateNote('${escapedNbName}', '${escapedCatName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
+                        <button title="Añadir Nota" onclick="event.stopPropagation(); promptCreateNote('${escapedNbName}', '${escapedCatName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         </button>
                     </div>
                 `;
                 
                 const catChildren = document.createElement('div');
-                catChildren.className = 'ml-3 pl-2 border-l border-slate-100 dark:border-slate-800/50 mt-1 space-y-1';
+                catChildren.className = `ml-3 pl-2 border-l border-slate-100 dark:border-slate-800/50 mt-1 space-y-1 ${isCatExpanded ? '' : 'hidden'}`;
                 child.children.forEach(note => {
                     catChildren.appendChild(createNoteEl(note));
                 });
@@ -165,12 +310,22 @@ function createNoteEl(note) {
     const escapedName = note.name.replace(/'/g, "\\'");
 
     el.className = `p-2 rounded-lg cursor-pointer transition flex items-center justify-between text-xs border-l-2 group ${activeClasses}`;
+    el.onclick = (e) => {
+        if (e.target.closest('button')) return;
+        selectNote({name: note.name, path: note.path});
+    };
     el.innerHTML = `
-        <div class="flex items-center truncate" onclick="selectNote({name: '${escapedName}', path: '${escapedPath}'})">
-            <span class="mr-2">📝</span><span class="truncate">${note.name}</span>
+        <div class="flex items-center truncate">
+            <span class="mr-2 text-violet-500">
+                <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </span>
+            <span class="truncate">${note.name}</span>
         </div>
-        <div class="hidden group-hover:flex items-center">
-            <button title="Renombrar Nota" onclick="promptRename('note', '${escapedPath}', '${escapedName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
+        <div class="hidden group-hover:flex items-center space-x-1">
+            <button title="Mover Nota" onclick="event.stopPropagation(); promptMoveNote('${escapedPath}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            </button>
+            <button title="Renombrar Nota" onclick="event.stopPropagation(); promptRename('note', '${escapedPath}', '${escapedName}', event)" class="p-1 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/50 transition">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             </button>
         </div>
@@ -199,6 +354,27 @@ modalConfirm.onclick = () => {
         modalCallback(val);
     }
     closeModal();
+};
+
+btnSettings.onclick = async () => {
+    const config = await window.api.getConfig();
+    settingsDirInput.value = config.dataDir;
+    settingsModal.classList.remove('hidden');
+};
+
+settingsModal.onclick = (e) => {
+    if (e.target === settingsModal) {
+        settingsModal.classList.add('hidden');
+    }
+};
+
+btnSelectDir.onclick = async () => {
+    const newDir = await window.api.selectDirectory();
+    if (newDir) {
+        settingsDirInput.value = newDir;
+        await loadTree();
+        showNotification("¡Directorio actualizado! 📁");
+    }
 };
 
 btnAddNotebook.onclick = () => {
@@ -258,6 +434,90 @@ if (btnRenameNote) {
     };
 }
 
+// Move Note Logic
+window.promptMoveNote = (oldPath, e) => {
+    e.stopPropagation();
+    noteToMovePath = oldPath;
+    
+    moveNotebookSelect.innerHTML = '<option value="">Selecciona un cuaderno</option>';
+    currentTree.forEach(nb => {
+        moveNotebookSelect.innerHTML += `<option value="${nb.name}">${nb.name}</option>`;
+    });
+    
+    moveCategorySelect.innerHTML = '<option value="">Selecciona una categoría</option>';
+    moveCategorySelect.disabled = true;
+    
+    moveModal.classList.remove('hidden');
+};
+
+moveNotebookSelect.onchange = () => {
+    const nbName = moveNotebookSelect.value;
+    moveCategorySelect.innerHTML = '<option value="">Selecciona una categoría</option>';
+    
+    if (nbName) {
+        const nb = currentTree.find(n => n.name === nbName);
+        if (nb && nb.children) {
+            nb.children.forEach(cat => {
+                if (cat.type === 'category') {
+                    moveCategorySelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+                }
+            });
+        }
+        moveCategorySelect.disabled = false;
+    } else {
+        moveCategorySelect.disabled = true;
+    }
+};
+
+moveCancel.onclick = () => {
+    moveModal.classList.add('hidden');
+    noteToMovePath = null;
+};
+
+moveConfirm.onclick = async () => {
+    const nb = moveNotebookSelect.value;
+    const cat = moveCategorySelect.value;
+    
+    if (!nb) {
+        alert("Debes seleccionar un cuaderno de destino.");
+        return;
+    }
+    
+    const newPath = await window.api.moveNode(noteToMovePath, nb, cat);
+    if (newPath) {
+        await loadTree();
+        if (activeNotePath === noteToMovePath) {
+            activeNotePath = newPath;
+        }
+        showNotification("¡Nota movida exitosamente! 🚚");
+        moveModal.classList.add('hidden');
+        noteToMovePath = null;
+    } else {
+        alert("Error al mover la nota.");
+    }
+};
+
+// Delete Note Logic
+if (btnDeleteNote) {
+    btnDeleteNote.onclick = async () => {
+        if (!activeNotePath) return;
+        
+        const confirmed = confirm("¿Estás seguro de que deseas eliminar esta nota de forma permanente?");
+        if (confirmed) {
+            const success = await window.api.deleteNode(activeNotePath);
+            if (success) {
+                showNotification("¡Nota eliminada! 🗑️");
+                activeNotePath = null;
+                emptyState.classList.remove('hidden');
+                noteActions.classList.add('hidden');
+                editorContainer.classList.add('hidden');
+                previewContainer.classList.add('hidden');
+                await loadTree();
+            }
+        }
+    };
+}
+
 // Editor Logic
 async function selectNote(note) {
     if (activeNotePath && isEditMode) {
@@ -267,7 +527,7 @@ async function selectNote(note) {
     noteTitleEl.textContent = note.name;
     
     emptyState.classList.add('hidden');
-    btnToggleMode.classList.remove('hidden');
+    noteActions.classList.remove('hidden');
     
     const content = await window.api.readNote(note.path);
     markdownInput.value = content;
@@ -313,11 +573,66 @@ btnToggleMode.onclick = async () => {
     }
 };
 
+function zcodexToMarkdown(zcodex) {
+    let md = zcodex;
+    md = md.replace(/(?<!\S)\.\.h1\s+(.*)$/gm, '# $1');
+    md = md.replace(/(?<!\S)\.\.h2\s+(.*)$/gm, '## $1');
+    md = md.replace(/(?<!\S)\.\.h3\s+(.*)$/gm, '### $1');
+    md = md.replace(/(?<!\S)\.\.hr/g, '---');
+    md = md.replace(/(?<!\S)\.\.br/g, '\n');
+    md = md.replace(/(?<!\S)\.\.precode\s+([\s\S]*?)\s+precode\.\./g, '```\n$1\n```');
+    md = md.replace(/(?<!\S)\.\.blq\s+([\s\S]*?)\s+blq\.\./g, '> $1');
+    md = md.replace(/(?<!\S)\.\.ulli\s+(.*)$/gm, '- $1');
+    md = md.replace(/(?<!\S)\.\.olli\s+(.*)$/gm, '1. $1');
+    md = md.replace(/(?<!\S)\.\.img\s+::(.*?)::(.*?)::\s+img\.\./g, '![$2]($1)');
+    md = md.replace(/(?<!\S)\.\.idir\s+::(.*?)::(.*?)::\s+idir\.\./g, '![$2](img/$1)');
+    md = md.replace(/(?<!\S)\.\.a\s+::(.*?)::(.*?)::\s+a\.\./g, '[$2]($1)');
+    md = md.replace(/(?<!\S)\.\.strong\s+(.*?)\s+strong\.\./g, '**$1**');
+    md = md.replace(/(?<!\S)\.\.em\s+(.*?)\s+em\.\./g, '*$1*');
+    md = md.replace(/(?<!\S)\.\.code\s+(.*?)\s+code\.\./g, '`$1`');
+    md = md.replace(/(?<!\S)\.\.p\s+([\s\S]*?)\s+p\.\./g, '$1\n');
+    
+    let lines = md.split('\n');
+    let inTable = false;
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (line.startsWith('//') && line.endsWith('//')) {
+            lines[i] = '| ' + line.substring(2, line.length - 2).split('//').map(c => c.trim()).join(' | ') + ' |';
+        }
+    }
+    return lines.join('\n');
+}
+
+btnExportNote.onclick = async () => {
+    if (!activeNotePath) return;
+    const content = zcodexToMarkdown(markdownInput.value);
+    const success = await window.api.exportNote(content);
+    if (success) {
+        showNotification("¡Nota exportada exitosamente! 📥");
+    }
+};
+
+btnCopyNote.onclick = async () => {
+    if (!activeNotePath) return;
+    try {
+        let textToCopy = '';
+        if (isEditMode) {
+            textToCopy = markdownInput.value;
+        } else {
+            textToCopy = htmlOutput.innerText;
+        }
+        await navigator.clipboard.writeText(textToCopy);
+        showNotification("¡Contenido copiado al portapapeles! 📋");
+    } catch (err) {
+        console.error('Error al copiar: ', err);
+    }
+};
+
 function showEditMode() {
     isEditMode = true;
     editorContainer.classList.remove('hidden');
     previewContainer.classList.add('hidden');
-    toggleText.innerText = "Modo Edición";
+    btnToggleMode.setAttribute('title', 'Modo Edición');
     toggleIcon.innerHTML = `
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
     `;
@@ -329,11 +644,83 @@ function showReadMode() {
     updatePreview();
     editorContainer.classList.add('hidden');
     previewContainer.classList.remove('hidden');
-    toggleText.innerText = "Modo Lectura";
+    btnToggleMode.setAttribute('title', 'Modo Lectura');
     toggleIcon.innerHTML = `
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
     `;
 }
+
+markdownInput.addEventListener('scroll', () => {
+    if (syntaxBackdrop) {
+        syntaxBackdrop.scrollTop = markdownInput.scrollTop;
+        syntaxBackdrop.scrollLeft = markdownInput.scrollLeft;
+    }
+});
+
+markdownInput.addEventListener('input', () => {
+    updateSyntaxHighlighting();
+});
+markdownInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' && e.ctrlKey) {
+        e.preventDefault();
+        if (btnNormalizeZcodex) btnNormalizeZcodex.click();
+    } else if (e.key === 'Enter') {
+        if (typeof autocompleteActive !== 'undefined' && autocompleteActive) return;
+        
+        const cursor = markdownInput.selectionStart;
+        const textToCursor = markdownInput.value.substring(0, cursor);
+        const lines = textToCursor.split('\n');
+        const currentLine = lines[lines.length - 1];
+        
+        const matchList = currentLine.match(/^(\s*)(\.\.ulli|\.\.olli)\s+(.*)$/);
+        
+        if (matchList) {
+            e.preventDefault();
+            const indent = matchList[1] || '';
+            const prefix = matchList[2];
+            const content = matchList[3].trim();
+            
+            // Si la línea está vacía (solo prefijo y espacios), borramos el prefijo
+            if (!content) {
+                const newTextToCursor = textToCursor.substring(0, textToCursor.length - currentLine.length);
+                const afterCursor = markdownInput.value.substring(cursor);
+                markdownInput.value = newTextToCursor + afterCursor;
+                markdownInput.selectionStart = markdownInput.selectionEnd = newTextToCursor.length;
+            } else {
+                // Insertamos nueva línea con prefijo
+                const insertion = `\n${indent}${prefix} `;
+                const before = markdownInput.value.substring(0, cursor);
+                const after = markdownInput.value.substring(cursor);
+                markdownInput.value = before + insertion + after;
+                markdownInput.selectionStart = markdownInput.selectionEnd = cursor + insertion.length;
+            }
+        } else {
+            e.preventDefault();
+            const indentMatch = currentLine.match(/^(\s*)/);
+            let currentIndent = indentMatch ? indentMatch[1] : '';
+            
+            const insertion = '\n' + currentIndent;
+            const before = markdownInput.value.substring(0, cursor);
+            const after = markdownInput.value.substring(cursor);
+            markdownInput.value = before + insertion + after;
+            markdownInput.selectionStart = markdownInput.selectionEnd = cursor + insertion.length;
+            updateSyntaxHighlighting();
+        }
+    } else if (e.key === 'Backspace') {
+        const cursor = markdownInput.selectionStart;
+        const textToCursor = markdownInput.value.substring(0, cursor);
+        const lines = textToCursor.split('\n');
+        const currentLine = lines[lines.length - 1];
+        
+        if (currentLine === '..ulli ' || currentLine === '..olli ') {
+            e.preventDefault();
+            const newTextToCursor = textToCursor.substring(0, textToCursor.length - currentLine.length);
+            const afterCursor = markdownInput.value.substring(cursor);
+            markdownInput.value = newTextToCursor + afterCursor;
+            markdownInput.selectionStart = markdownInput.selectionEnd = newTextToCursor.length;
+        }
+    }
+});
 
 markdownInput.addEventListener('input', (e) => {
     // Autocompletado de etiquetas Zcodex
@@ -344,10 +731,11 @@ markdownInput.addEventListener('input', (e) => {
         const lastWord = words[words.length - 1];
         
         const CLOSING_TAGS = {
-            '--strong': ' strong--',
-            '--em': ' em--',
-            '--code': ' code--',
-            '--blq': ' blq--'
+            '..strong': ' strong..',
+            '..em': ' em..',
+            '..code': ' code..',
+            '..blq': '\n\nblq..',
+            '..p': '\n\np..'
         };
 
         if (CLOSING_TAGS[lastWord]) {
@@ -356,9 +744,35 @@ markdownInput.addEventListener('input', (e) => {
             const after = markdownInput.value.substring(cursor);
             
             markdownInput.value = before + closing + after;
-            markdownInput.selectionStart = markdownInput.selectionEnd = cursor;
-        } else if (lastWord === '--a' || lastWord === '--img') {
-            const closing = lastWord === '--a' ? '-Url--Texto- a--' : '-Url--Texto- img--';
+            if (closing.includes('\n')) {
+                markdownInput.selectionStart = markdownInput.selectionEnd = cursor + 1;
+            } else {
+                markdownInput.selectionStart = markdownInput.selectionEnd = cursor;
+            }
+        } else if (lastWord === '..idir') {
+            const before = markdownInput.value.substring(0, cursor - 7);
+            const after = markdownInput.value.substring(cursor);
+            
+            // Pausar y abrir dialogo
+            markdownInput.value = before + '..idir' + after;
+            markdownInput.selectionStart = markdownInput.selectionEnd = cursor - 1;
+            
+            window.api.selectLocalImage(activeNotePath).then(filename => {
+                if (filename) {
+                    const insertion = `..idir ::${filename}::Texto:: idir..`;
+                    markdownInput.value = before + insertion + after;
+                    markdownInput.selectionStart = before.length + insertion.length - 13; // Select "Texto"
+                    markdownInput.selectionEnd = before.length + insertion.length - 8;
+                } else {
+                    markdownInput.value = before + '..idir ' + after;
+                    markdownInput.selectionStart = markdownInput.selectionEnd = before.length + 7;
+                }
+                updatePreview();
+                markdownInput.focus();
+            });
+            return;
+        } else if (lastWord === '..a' || lastWord === '..img') {
+            const closing = lastWord === '..a' ? '::Url::Texto:: a..' : '::Url::Texto:: img..';
             const before = markdownInput.value.substring(0, cursor);
             const after = markdownInput.value.substring(cursor);
             
@@ -366,18 +780,16 @@ markdownInput.addEventListener('input', (e) => {
             // Seleccionar la palabra "Url" para que el usuario empiece a escribir directamente
             markdownInput.selectionStart = cursor + 1;
             markdownInput.selectionEnd = cursor + 4;
-        } else if (lastWord === '--precode') {
+        } else if (lastWord === '..precode') {
             const before = markdownInput.value.substring(0, cursor - 1);
             const after = markdownInput.value.substring(cursor);
             
-            markdownInput.value = before + '\n\nprecode--' + after;
+            markdownInput.value = before + '\n\nprecode..' + after;
             markdownInput.selectionStart = markdownInput.selectionEnd = before.length + 1;
         }
     }
 
     showSaveStatus(false);
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(saveCurrentNote, 1000);
 });
 
 // Zcodex Parser
@@ -414,34 +826,56 @@ function parseZcodex(text) {
 
     let parsed = resultLines.join('\n');
 
-    parsed = parsed.replace(/^--h1\s+(.*)$/gm, '<h1 class="text-3xl font-extrabold text-slate-900 dark:text-white mt-8 mb-4 border-b pb-2 border-slate-100 dark:border-slate-800">$1</h1>');
-    parsed = parsed.replace(/^--h2\s+(.*)$/gm, '<h2 class="text-2xl font-bold text-slate-900 dark:text-white mt-6 mb-3">$1</h2>');
-    parsed = parsed.replace(/^--h3\s+(.*)$/gm, '<h3 class="text-xl font-semibold text-slate-900 dark:text-white mt-5 mb-2">$1</h3>');
+    parsed = parsed.replace(/(?<!\S)\.\.h1\s+(.*)$/gm, '<h1 class="text-3xl font-extrabold text-slate-700 dark:text-white mt-8 mb-4 border-b pb-2 border-slate-100 dark:border-slate-800">$1</h1>');
+    parsed = parsed.replace(/(?<!\S)\.\.h2\s+(.*)$/gm, '<h2 class="text-2xl font-bold text-slate-700 dark:text-white mt-6 mb-3">$1</h2>');
+    parsed = parsed.replace(/(?<!\S)\.\.h3\s+(.*)$/gm, '<h3 class="text-xl font-semibold text-slate-700 dark:text-white mt-5 mb-2">$1</h3>');
 
-    parsed = parsed.replace(/--hr/g, '<hr class="my-6 border-t border-slate-200 dark:border-slate-700">');
-    parsed = parsed.replace(/--br/g, '<br>');
+    parsed = parsed.replace(/(?<!\S)\.\.hr/g, '<hr class="my-6 border-t border-slate-200 dark:border-slate-700">');
+    parsed = parsed.replace(/(?<!\S)\.\.br/g, '<br>');
 
-    parsed = parsed.replace(/--precode\s+([\s\S]*?)\s+precode--/g, function(match, codeContent) {
+    parsed = parsed.replace(/(?<!\S)\.\.precode\s+([\s\S]*?)\s+precode\.\./g, function(match, codeContent) {
         return `<pre class="bg-slate-100 dark:bg-slate-800 p-4 rounded-xl font-mono text-xs overflow-x-auto my-5 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"><code>${codeContent}</code></pre>`;
     });
 
-    parsed = parsed.replace(/--blq\s+([\s\S]*?)\s+blq--/g, '<blockquote class="border-l-4 border-violet-500 pl-4 py-2 italic my-5 bg-violet-50/50 dark:bg-violet-950/20 text-slate-700 dark:text-slate-300 rounded-r-lg">$1</blockquote>');
+    parsed = parsed.replace(/(?<!\S)\.\.blq\s+([\s\S]*?)\s+blq\.\./g, '<blockquote class="border-l-4 border-violet-500 pl-4 py-2 italic my-5 bg-violet-50/50 dark:bg-violet-950/20 text-slate-700 dark:text-slate-300 rounded-r-lg">$1</blockquote>');
 
-    parsed = parsed.replace(/^--ulli\s+(.*)$/gm, '<ul><li class="list-disc list-inside ml-4 my-1.5 text-slate-700 dark:text-slate-300">$1</li></ul>');
+    parsed = parsed.replace(/(?<!\S)\.\.ulli\s+(.*)$/gm, '<ul><li class="list-disc list-inside ml-4 my-1.5 text-slate-700 dark:text-slate-300">$1</li></ul>');
     parsed = parsed.replace(/<\/ul>\s*<ul>/g, ''); 
 
-    parsed = parsed.replace(/^--olli\s+(.*)$/gm, '<ol><li class="list-decimal list-inside ml-4 my-1.5 text-slate-700 dark:text-slate-300">$1</li></ol>');
+    parsed = parsed.replace(/(?<!\S)\.\.olli\s+(.*)$/gm, '<ol><li class="list-decimal list-inside ml-4 my-1.5 text-slate-700 dark:text-slate-300">$1</li></ol>');
     parsed = parsed.replace(/<\/ol>\s*<ol>/g, '');
 
-    parsed = parsed.replace(/--img\s+-(.*?)--(.*?)-\s+img--/g, '<img src="$1" alt="$2" class="max-w-full h-auto rounded-xl shadow-md my-6 border border-slate-200 dark:border-slate-700 block mx-auto">');
+    parsed = parsed.replace(/(?<!\S)\.\.img\s+::(.*?)::(.*?)::\s+img\.\./g, '<img src="$1" alt="$2" class="max-w-full h-auto rounded-xl shadow-md my-6 border border-slate-200 dark:border-slate-700 block mx-auto">');
 
-    parsed = parsed.replace(/--a\s+-(.*?)--(.*?)-\s+a--/g, '<a href="$1" class="text-violet-600 dark:text-violet-400 hover:underline font-semibold" target="_blank">$2</a>');
+    parsed = parsed.replace(/(?<!\S)\.\.idir\s+::(.*?)::(.*?)::\s+idir\.\./g, (match, p1, p2) => {
+        let fullPath = '';
+        if (activeNotePath) {
+            fullPath = 'file:///' + (activeNotePath + '/img/' + p1).replace(/\\/g, '/');
+        } else {
+            fullPath = 'img/' + p1;
+        }
+        return `<img src="${fullPath}" alt="${p2}" class="max-w-full h-auto rounded-xl shadow-md my-6 border border-slate-200 dark:border-slate-700 block mx-auto">`;
+    });
 
-    parsed = parsed.replace(/--strong\s+(.*?)\s+strong--/g, '<strong class="font-bold text-slate-950 dark:text-white">$1</strong>');
+    parsed = parsed.replace(/(?<!\S)\.\.a\s+::(.*?)::(.*?)::\s+a\.\./g, '<a href="$1" class="text-violet-600 dark:text-violet-400 hover:underline font-semibold">$2</a>');
 
-    parsed = parsed.replace(/--em\s+(.*?)\s+em--/g, '<em class="italic text-slate-800 dark:text-slate-200">$1</em>');
+    parsed = parsed.replace(/(?<!\S)\.\.strong\s+(.*?)\s+strong\.\./g, '<strong class="font-bold text-slate-950 dark:text-white">$1</strong>');
 
-    parsed = parsed.replace(/--code\s+(.*?)\s+code--/g, '<code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-xs text-pink-600 dark:text-pink-400 font-semibold">$1</code>');
+    parsed = parsed.replace(/(?<!\S)\.\.em\s+(.*?)\s+em\.\./g, '<em class="italic text-slate-800 dark:text-slate-200">$1</em>');
+
+    parsed = parsed.replace(/(?<!\S)\.\.code\s+(.*?)\s+code\.\./g, '<code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-xs text-slate-800 dark:text-slate-200">$1</code>');
+
+    parsed = parsed.replace(/(?<!\S)\.\.p\s+([\s\S]*?)\s+p\.\./g, '<p class="mb-4 text-slate-700 dark:text-slate-300 leading-relaxed">$1</p>');
+
+    let markCount = 0;
+    parsed = parsed.replace(/(?<!\S)\.\.mark\s+\[( |x|X)\]\s+(.*)$/gm, (match, state, text) => {
+        let isChecked = state.toLowerCase() === 'x' ? 'checked' : '';
+        let index = markCount++;
+        return `<div class="flex items-center space-x-3 my-2 group">
+                  <input type="checkbox" class="w-5 h-5 rounded border-slate-300 text-violet-600 focus:ring-violet-500 transition-colors cursor-pointer flex-shrink-0" style="width:20px;height:20px;min-width:20px;min-height:20px;flex-shrink:0" data-mark-index="${index}" ${isChecked} onchange="toggleZcodexMark(${index}, this.checked)">
+                  <span class="text-slate-700 dark:text-slate-300 select-none transition-colors ${isChecked ? 'line-through opacity-60' : ''}">${text}</span>
+                </div>`;
+    });
 
     let sections = parsed.split(/\n{2,}/);
     let processedSections = sections.map(section => {
@@ -454,6 +888,31 @@ function parseZcodex(text) {
 
     return processedSections.join('\n');
 }
+
+window.toggleZcodexMark = (index, isChecked) => {
+    let rawText = markdownInput.value;
+    let count = 0;
+    let newChar = isChecked ? 'x' : ' ';
+    
+    let newText = rawText.replace(/(?<!\S)\.\.mark\s+\[( |x|X)\]/gm, (match, state) => {
+        if (count === index) {
+            count++;
+            return `..mark [${newChar}]`;
+        }
+        count++;
+        return match;
+    });
+    
+    if (rawText !== newText) {
+        markdownInput.value = newText;
+        updatePreview();
+        if (activeNotePath) {
+            window.api.saveNote(activeNotePath, newText).then(() => {
+                showSaveStatus(true);
+            });
+        }
+    }
+};
 
 // Renderizador de Tablas Zcodex
 function renderTableHTML(rows) {
@@ -469,11 +928,13 @@ function renderTableHTML(rows) {
 
     if (cleanRows.length > 1) {
         let secondRow = cleanRows[1];
-        let isAlignRow = secondRow.every(cell => /^<?-+>?$/.test(cell));
+        let isAlignRow = secondRow.every(cell => /^(&lt;|<)?-+(&gt;|>)?$/.test(cell));
         if (isAlignRow) {
             alignment = secondRow.map(cell => {
-                if (cell.startsWith('<') && cell.endsWith('>')) return 'center';
-                if (cell.endsWith('>')) return 'right';
+                const startsLeft = cell.startsWith('<') || cell.startsWith('&lt;');
+                const endsRight  = cell.endsWith('>')  || cell.endsWith('&gt;');
+                if (startsLeft && endsRight) return 'center';
+                if (endsRight) return 'right';
                 return 'left';
             });
             startDataIndex = 2;
@@ -514,7 +975,21 @@ function updatePreview() {
     const editorText = markdownInput.value;
     const parsedHTML = parseZcodex(editorText);
     htmlOutput.innerHTML = parsedHTML || `<p class="text-slate-400 italic">Contenido vacío...</p>`;
+    updateSyntaxHighlighting();
 }
+
+// Interceptar clicks en links del preview → abrir en navegador del sistema
+htmlOutput.addEventListener('click', (e) => {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('#')) return;
+    e.preventDefault();
+    if (window.api && window.api.openExternal) {
+        window.api.openExternal(href);
+    }
+});
+
 
 // Templates Insert
 window.insertTemplate = (templateText) => {
@@ -536,8 +1011,6 @@ window.insertTemplate = (templateText) => {
     markdownInput.focus();
 
     showSaveStatus(false);
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(saveCurrentNote, 1000);
     showNotification("¡Formato insertado! 📥");
 };
 
@@ -578,12 +1051,12 @@ function initTheme() {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
-        document.getElementById('theme-sun').classList.remove('hidden');
-        document.getElementById('theme-moon').classList.add('hidden');
+        document.getElementById('theme-moon').classList.remove('hidden');
+        document.getElementById('theme-sun').classList.add('hidden');
     } else {
         document.documentElement.classList.remove('dark');
-        document.getElementById('theme-sun').classList.add('hidden');
-        document.getElementById('theme-moon').classList.remove('hidden');
+        document.getElementById('theme-moon').classList.add('hidden');
+        document.getElementById('theme-sun').classList.remove('hidden');
     }
 }
 
@@ -592,14 +1065,14 @@ window.toggleTheme = () => {
     if (isDark) {
         document.documentElement.classList.remove('dark');
         localStorage.setItem('theme', 'light');
-        document.getElementById('theme-sun').classList.add('hidden');
-        document.getElementById('theme-moon').classList.remove('hidden');
+        document.getElementById('theme-moon').classList.add('hidden');
+        document.getElementById('theme-sun').classList.remove('hidden');
         showNotification("¡Modo claro activado! ☀️");
     } else {
         document.documentElement.classList.add('dark');
         localStorage.setItem('theme', 'dark');
-        document.getElementById('theme-sun').classList.remove('hidden');
-        document.getElementById('theme-moon').classList.add('hidden');
+        document.getElementById('theme-moon').classList.remove('hidden');
+        document.getElementById('theme-sun').classList.add('hidden');
         showNotification("¡Modo oscuro activado! 🌙");
     }
 };
@@ -639,8 +1112,405 @@ markdownInput.addEventListener('paste', async (e) => {
 });
 
 // Auto-save on blur
+const autocompletePopup = document.getElementById('autocomplete-popup');
+const autocompleteList = document.getElementById('autocomplete-list');
+
+const autocompleteDictionary = [
+    { label: 'Encabezado 1', prefix: '..h1', insert: '..h1 ', selStart: 5, selEnd: 5 },
+    { label: 'Encabezado 2', prefix: '..h2', insert: '..h2 ', selStart: 5, selEnd: 5 },
+    { label: 'Encabezado 3', prefix: '..h3', insert: '..h3 ', selStart: 5, selEnd: 5 },
+    { label: 'Párrafo', prefix: '..p', insert: '..p\n\np..', selStart: 4, selEnd: 4 },
+    { label: 'Negrita', prefix: '..strong', insert: '..strong  strong..', selStart: 9, selEnd: 9 },
+    { label: 'Cursiva', prefix: '..em', insert: '..em  em..', selStart: 5, selEnd: 5 },
+    { label: 'Código en línea', prefix: '..code', insert: '..code  code..', selStart: 7, selEnd: 7 },
+    { label: 'Bloque de código', prefix: '..precode', insert: '..precode\n\nprecode..', selStart: 10, selEnd: 10 },
+    { label: 'Enlace web', prefix: '..a', insert: '..a ::URL::Texto:: a..', selStart: 6, selEnd: 9 },
+    { label: 'Imagen web', prefix: '..img', insert: '..img ::URL::Texto:: img..', selStart: 8, selEnd: 11 },
+    { label: 'Cita', prefix: '..blq', insert: '..blq\n\nblq..', selStart: 6, selEnd: 6 },
+    { label: 'Lista Desordenada', prefix: '..ulli', insert: '..ulli ', selStart: 7, selEnd: 7 },
+    { label: 'Lista Ordenada', prefix: '..olli', insert: '..olli ', selStart: 7, selEnd: 7 },
+    { label: 'Casilla de verificación', prefix: '..mark', insert: '..mark [ ] Texto', selStart: 11, selEnd: 16 },
+    { label: 'Línea horizontal', prefix: '..hr', insert: '..hr\n', selStart: 5, selEnd: 5 },
+    { label: 'Salto de línea', prefix: '..br', insert: '..br\n', selStart: 5, selEnd: 5 },
+    { label: 'Tabla', prefix: '// ', insert: '// Titulo1 // Titulo2 // Titulo3 //\n// <- // <-> // -> //\n// texto // texto // texto //\n', selStart: 3, selEnd: 10 }
+];
+
+let currentAutocompletePrefix = '';
+let currentAutocompleteMatches = [];
+let autocompleteSelectedIndex = 0;
+let autocompleteActive = false;
+
+function getCaretCoordinates(element, position) {
+    const div = document.createElement('div');
+    const style = getComputedStyle(element);
+    for (const prop of style) {
+        div.style[prop] = style[prop];
+    }
+    div.style.position = 'absolute';
+    div.style.visibility = 'hidden';
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.wordWrap = 'break-word';
+    div.textContent = element.value.substring(0, position);
+    const span = document.createElement('span');
+    span.textContent = element.value.substring(position) || '.';
+    div.appendChild(span);
+    document.body.appendChild(div);
+    const coordinates = {
+        top: span.offsetTop - element.scrollTop,
+        left: span.offsetLeft - element.scrollLeft,
+    };
+    document.body.removeChild(div);
+    return coordinates;
+}
+
+function closeAutocomplete() {
+    autocompletePopup.classList.add('hidden');
+    autocompleteActive = false;
+}
+
+function renderAutocompleteList() {
+    autocompleteList.innerHTML = '';
+    currentAutocompleteMatches.forEach((match, index) => {
+        const li = document.createElement('li');
+        li.className = `px-3 py-1.5 cursor-pointer flex justify-between items-center ${index === autocompleteSelectedIndex ? 'bg-violet-100 dark:bg-violet-900/40' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`;
+        li.innerHTML = `
+            <span class="font-semibold text-slate-700 dark:text-slate-300">${match.label}</span>
+            <span class="text-slate-400 font-mono text-[10px] ml-4">${match.prefix}</span>
+        `;
+        li.onmousedown = (e) => {
+            e.preventDefault(); // prevent blur
+            insertAutocomplete(match);
+        };
+        autocompleteList.appendChild(li);
+    });
+}
+
+function insertAutocomplete(match) {
+    const cursor = markdownInput.selectionStart;
+    const textToCursor = markdownInput.value.substring(0, cursor);
+    const prefixMatch = textToCursor.match(/(?:^|\s)(\.\.[a-z0-9]*|\/\/\s?)$/);
+    const prefixLength = prefixMatch ? prefixMatch[1].length : currentAutocompletePrefix.length;
+    
+    const before = markdownInput.value.substring(0, cursor - prefixLength);
+    const after = markdownInput.value.substring(cursor);
+    
+    closeAutocomplete();
+    
+    if (match.prefix === '..idir') {
+        window.api.selectLocalImage(activeNotePath).then(filename => {
+            if (filename) {
+                const insertion = `..idir ::${filename}::Texto:: idir..`;
+                markdownInput.value = before + insertion + after;
+                markdownInput.selectionStart = before.length + insertion.length - 13; // Select "Texto"
+                markdownInput.selectionEnd = before.length + insertion.length - 8;
+            } else {
+                markdownInput.value = before + '..idir ' + after;
+                markdownInput.selectionStart = markdownInput.selectionEnd = before.length + 7;
+            }
+            updatePreview();
+            markdownInput.focus();
+        });
+        return;
+    }
+    
+    markdownInput.value = before + match.insert + after;
+    markdownInput.selectionStart = before.length + match.selStart;
+    markdownInput.selectionEnd = before.length + match.selEnd;
+    
+    updateSyntaxHighlighting();
+    showSaveStatus(false);
+    markdownInput.focus();
+}
+
+markdownInput.addEventListener('input', (e) => {
+    // Existing logic... (stays untouched as it's outside this chunk)
+    
+    // Autocomplete UI logic
+    const cursor = markdownInput.selectionStart;
+    const textToCursor = markdownInput.value.substring(0, cursor);
+    const match = textToCursor.match(/(?:^|\s)(\.\.[a-z0-9]*|\/\/\s?)$/);
+    
+    if (match) {
+        // Evitar que Backspace vuelva a abrir el menú si no estaba activo
+        if ((e.inputType === 'deleteContentBackward' || e.inputType === 'deleteContentForward') && !autocompleteActive) {
+            closeAutocomplete();
+            return;
+        }
+
+        currentAutocompletePrefix = match[1];
+        if (currentAutocompletePrefix === '//') currentAutocompletePrefix = '// ';
+        
+        currentAutocompleteMatches = autocompleteDictionary.filter(item => item.prefix.startsWith(currentAutocompletePrefix));
+        
+        if (currentAutocompleteMatches.length > 0) {
+            autocompleteActive = true;
+            autocompleteSelectedIndex = 0;
+            renderAutocompleteList();
+            
+            const coords = getCaretCoordinates(markdownInput, cursor);
+            autocompletePopup.style.left = Math.min(coords.left + 30, markdownInput.clientWidth - 260) + 'px';
+            autocompletePopup.style.top = Math.min(coords.top + 30, markdownInput.clientHeight - 200) + 'px';
+            autocompletePopup.classList.remove('hidden');
+        } else {
+            closeAutocomplete();
+        }
+    } else {
+        closeAutocomplete();
+    }
+});
+
+markdownInput.addEventListener('keydown', (e) => {
+    if (autocompleteActive) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            autocompleteSelectedIndex = (autocompleteSelectedIndex + 1) % currentAutocompleteMatches.length;
+            renderAutocompleteList();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            autocompleteSelectedIndex = (autocompleteSelectedIndex - 1 + currentAutocompleteMatches.length) % currentAutocompleteMatches.length;
+            renderAutocompleteList();
+        } else if (e.key === 'Tab' || e.key === 'Enter') {
+            e.preventDefault();
+            insertAutocomplete(currentAutocompleteMatches[autocompleteSelectedIndex]);
+        } else if (e.key === 'Escape') {
+            closeAutocomplete();
+        }
+    }
+    // Existing keydown logic handled previously
+});
+
+// Auto-save on blur
 markdownInput.addEventListener('blur', () => {
     saveCurrentNote();
+});
+
+// UI Buttons Logic
+const btnRefresh = document.getElementById('btn-refresh');
+btnRefresh.onclick = () => {
+    location.reload();
+};
+
+if (btnNormalizeZcodex) {
+    btnNormalizeZcodex.onclick = () => {
+        let content = markdownInput.value;
+        
+        // Expandir etiquetas inline a multilinea para indentación
+        content = content.replace(/(?<!\S)(\.\.(?:p|precode|blq))[ \t]+([\s\S]*?)[ \t]+((?:p|precode|blq)\.\.)/g, '$1\n$2\n$3');
+        content = content.replace(/(?<!\S)(\.\.(?:h1|h2|h3))[ \t]+(.+)/g, '$1\n$2');
+
+        // Aplicar sangría
+        let linesArray = content.split('\n');
+        let outLines = [];
+        let depth = 0;
+        let inPrecode = false;
+        let indentNext = false;
+
+        for (let line of linesArray) {
+            let t = line.trim();
+            if (t.length === 0) {
+                outLines.push('');
+                continue;
+            }
+
+            let isClose = t.match(/^(p|precode|blq)\.\.$/);
+            if (isClose) {
+                if (t === 'precode..') inPrecode = false;
+                if (depth > 0) depth--;
+                outLines.push(' '.repeat(depth * 4) + t);
+                continue;
+            }
+
+            let requiredIndent = depth + (indentNext ? 1 : 0);
+            indentNext = false;
+
+            if (inPrecode) {
+                const currentSpacesMatch = line.match(/^(\s*)/);
+                const currentSpaces = currentSpacesMatch ? currentSpacesMatch[1].length : 0;
+                if (currentSpaces < requiredIndent * 4) {
+                    outLines.push(' '.repeat(requiredIndent * 4 - currentSpaces) + line);
+                } else {
+                    outLines.push(line);
+                }
+            } else {
+                outLines.push(' '.repeat(requiredIndent * 4) + t);
+            }
+
+            let isOpen = t.match(/^\.\.(p|precode|blq)$/);
+            if (isOpen) {
+                if (t === '..precode') inPrecode = true;
+                depth++;
+            } else if (t.match(/^\.\.(h1|h2|h3)$/)) {
+                indentNext = true;
+            }
+        }
+        content = outLines.join('\n');
+        
+        markdownInput.value = content;
+        updatePreview();
+        updateSyntaxHighlighting();
+        showSaveStatus(false);
+        showNotification("Zcodex Normalizado ✔️");
+    };
+}
+
+const btnCheckImages = document.getElementById('btn-check-images');
+btnCheckImages.onclick = async () => {
+    if (!activeNotePath) return;
+    const content = markdownInput.value;
+    const result = await window.api.cleanupImages(activeNotePath, content);
+    if (result.count > 0) {
+        if (result.deleted) {
+            showNotification(`Se limpiaron ${result.count} imagen(es) huérfana(s) 🧹`);
+        } else {
+            showNotification("Operación cancelada");
+        }
+    } else {
+        showNotification("No hay imágenes huérfanas ❤️");
+    }
+};
+
+const btnTrashContainer = document.getElementById('btn-trash-container');
+const deleteContainerModal = document.getElementById('delete-container-modal');
+const deleteNotebookSelect = document.getElementById('delete-notebook-select');
+const deleteCategorySelect = document.getElementById('delete-category-select');
+const deleteContainerCancel = document.getElementById('delete-container-cancel');
+const deleteContainerConfirm = document.getElementById('delete-container-confirm');
+
+const tabDelNotebook = document.getElementById('tab-del-notebook');
+const tabDelCategory = document.getElementById('tab-del-category');
+const deleteCategoryWrapper = document.getElementById('delete-category-wrapper');
+const deleteContainerDesc = document.getElementById('delete-container-desc');
+
+let currentDeleteMode = 'notebook';
+
+function updateDeleteTabs() {
+    if (currentDeleteMode === 'notebook') {
+        tabDelNotebook.className = 'flex-1 py-1.5 text-xs font-medium bg-white dark:bg-slate-700 shadow rounded text-slate-800 dark:text-white transition';
+        tabDelCategory.className = 'flex-1 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition rounded';
+        deleteCategoryWrapper.classList.add('hidden');
+        deleteContainerDesc.innerHTML = 'Selecciona el cuaderno que deseas eliminar permanentemente. <strong class="text-red-500">Esto borrará todas las notas dentro.</strong>';
+    } else {
+        tabDelCategory.className = 'flex-1 py-1.5 text-xs font-medium bg-white dark:bg-slate-700 shadow rounded text-slate-800 dark:text-white transition';
+        tabDelNotebook.className = 'flex-1 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition rounded';
+        deleteCategoryWrapper.classList.remove('hidden');
+        deleteContainerDesc.innerHTML = 'Selecciona el cuaderno y luego la categoría que deseas eliminar. <strong class="text-red-500">Esto borrará todas las notas dentro de ella.</strong>';
+    }
+}
+
+tabDelNotebook.onclick = () => {
+    currentDeleteMode = 'notebook';
+    updateDeleteTabs();
+};
+
+tabDelCategory.onclick = () => {
+    currentDeleteMode = 'category';
+    updateDeleteTabs();
+};
+
+btnTrashContainer.onclick = () => {
+    currentDeleteMode = 'notebook';
+    updateDeleteTabs();
+    
+    deleteNotebookSelect.innerHTML = '<option value="">Selecciona un cuaderno</option>';
+    const notebooks = [...new Set(currentTree.map(n => n.notebook || n.name))].filter(Boolean);
+    notebooks.forEach(nb => {
+        deleteNotebookSelect.innerHTML += `<option value="${nb}">${nb}</option>`;
+    });
+    deleteCategorySelect.innerHTML = '<option value="">Selecciona una categoría</option>';
+    deleteCategorySelect.disabled = true;
+    deleteContainerModal.classList.remove('hidden');
+};
+
+deleteNotebookSelect.onchange = () => {
+    const nb = deleteNotebookSelect.value;
+    deleteCategorySelect.innerHTML = '<option value="">Selecciona una categoría</option>';
+    if (nb) {
+        const nbNode = currentTree.find(n => (n.notebook === nb || n.name === nb));
+        if (nbNode && nbNode.children) {
+            const categories = nbNode.children.filter(c => c.type === 'category').map(c => c.name);
+            categories.forEach(cat => {
+                deleteCategorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+            deleteCategorySelect.disabled = categories.length === 0;
+        } else {
+            deleteCategorySelect.disabled = true;
+        }
+    } else {
+        deleteCategorySelect.disabled = true;
+    }
+};
+
+deleteContainerCancel.onclick = () => {
+    deleteContainerModal.classList.add('hidden');
+};
+
+deleteContainerModal.onclick = (e) => {
+    if(e.target === deleteContainerModal) deleteContainerModal.classList.add('hidden');
+};
+
+deleteContainerConfirm.onclick = async () => {
+    const nb = deleteNotebookSelect.value;
+    const cat = deleteCategorySelect.value;
+    
+    if (currentDeleteMode === 'notebook' && !nb) {
+        showNotification("Selecciona un cuaderno primero");
+        return;
+    }
+    
+    if (currentDeleteMode === 'category' && (!nb || !cat)) {
+        showNotification("Selecciona un cuaderno y una categoría");
+        return;
+    }
+    
+    const config = await window.api.getConfig();
+    let targetPath = config.dataDir + '\\\\' + nb;
+    if (currentDeleteMode === 'category') {
+        targetPath += '\\\\' + cat;
+    }
+    
+    const success = await window.api.deleteNode(targetPath);
+    if (success) {
+        showNotification("Estructura eliminada con éxito");
+        deleteContainerModal.classList.add('hidden');
+        
+        if (activeNotePath && activeNotePath.startsWith(targetPath)) {
+            activeNotePath = null;
+            emptyState.classList.remove('hidden');
+            noteActions.classList.add('hidden');
+            editorContainer.classList.add('hidden');
+            previewContainer.classList.add('hidden');
+            noteTitleEl.textContent = 'Selecciona una nota';
+        }
+        
+        await loadTree();
+    } else {
+        showNotification("Error al eliminar la estructura");
+    }
+};
+
+// Keyboard Shortcuts
+window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && !e.altKey) {
+        if (e.key === 'ArrowLeft' || e.code === 'ArrowLeft') {
+            e.preventDefault();
+            e.stopPropagation();
+            window.toggleSidebar('left');
+        } else if (e.key === 'ArrowRight' || e.code === 'ArrowRight') {
+            e.preventDefault();
+            e.stopPropagation();
+            window.toggleSidebar('right');
+        } else if (e.key === 'ArrowUp' || e.code === 'ArrowUp') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (activeNotePath) {
+                if (isEditMode) {
+                    showReadMode();
+                } else {
+                    showEditMode();
+                }
+            }
+        }
+    }
 });
 
 // Start

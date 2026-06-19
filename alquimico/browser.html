@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navegador</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background: #0f172a;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* ── Barra de navegación ── */
+        #navbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #1e293b;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            -webkit-app-region: drag;
+            min-height: 48px;
+            flex-shrink: 0;
+        }
+
+        #navbar button, #navbar #btn-close {
+            -webkit-app-region: no-drag;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, opacity 0.15s;
+            flex-shrink: 0;
+        }
+
+        #btn-back, #btn-forward {
+            background: rgba(255,255,255,0.06);
+            color: #94a3b8;
+        }
+        #btn-back:hover:not(:disabled), #btn-forward:hover:not(:disabled) {
+            background: rgba(255,255,255,0.12);
+            color: #e2e8f0;
+        }
+        #btn-back:disabled, #btn-forward:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        #btn-reload {
+            background: rgba(255,255,255,0.06);
+            color: #94a3b8;
+        }
+        #btn-reload:hover { background: rgba(255,255,255,0.12); color: #e2e8f0; }
+
+        #btn-close {
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            margin-left: auto;
+        }
+        #btn-close:hover { background: rgba(239,68,68,0.35); color: #fff; }
+
+        /* URL bar */
+        #url-bar-wrap {
+            flex: 1;
+            position: relative;
+            -webkit-app-region: no-drag;
+        }
+        #url-display {
+            width: 100%;
+            height: 32px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            color: #cbd5e1;
+            font-size: 12px;
+            padding: 0 12px 0 32px;
+            outline: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: default;
+            display: flex;
+            align-items: center;
+            user-select: all;
+        }
+        #url-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            pointer-events: none;
+        }
+
+        /* loading bar */
+        #loading-bar {
+            height: 2px;
+            background: linear-gradient(90deg, #6366f1, #a78bfa);
+            width: 0%;
+            transition: width 0.3s ease;
+            flex-shrink: 0;
+        }
+        #loading-bar.active { animation: loadpulse 1.2s ease infinite; }
+
+        @keyframes loadpulse {
+            0%   { width: 10%; opacity: 1; }
+            50%  { width: 75%; opacity: 0.8; }
+            100% { width: 10%; opacity: 1; }
+        }
+
+        /* Contenedor del webview */
+        #webview-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        webview {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="navbar">
+        <!-- Atrás -->
+        <button id="btn-back" title="Atrás" disabled>
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+
+        <!-- Adelante -->
+        <button id="btn-forward" title="Adelante" disabled>
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+
+        <!-- Recargar -->
+        <button id="btn-reload" title="Recargar">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17m0 0v-5m0 5h-5"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M20 20v-5h-.581m-15.357-2A8.001 8.001 0 002.79 16H7m0 0v5m0-5H2"/>
+            </svg>
+        </button>
+
+        <!-- Barra de URL -->
+        <div id="url-bar-wrap">
+            <svg id="url-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+            </svg>
+            <div id="url-display" title=""></div>
+        </div>
+
+        <!-- Cerrar -->
+        <button id="btn-close" title="Cerrar">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <div id="loading-bar"></div>
+
+    <div id="webview-container">
+        <webview id="webview" src="" allowpopups></webview>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const webview = document.getElementById('webview');
+        const btnBack    = document.getElementById('btn-back');
+        const btnForward = document.getElementById('btn-forward');
+        const btnReload  = document.getElementById('btn-reload');
+        const btnClose   = document.getElementById('btn-close');
+        const urlDisplay = document.getElementById('url-display');
+        const loadingBar = document.getElementById('loading-bar');
+
+        // Recibir URL inicial desde main
+        ipcRenderer.on('load-url', (event, url) => {
+            webview.src = url;
+        });
+
+        function updateNavButtons() {
+            btnBack.disabled    = !webview.canGoBack();
+            btnForward.disabled = !webview.canGoForward();
+        }
+
+        function updateUrl(url) {
+            urlDisplay.textContent = url;
+            urlDisplay.title = url;
+        }
+
+        webview.addEventListener('did-start-loading', () => {
+            loadingBar.classList.add('active');
+        });
+
+        webview.addEventListener('did-stop-loading', () => {
+            loadingBar.classList.remove('active');
+            updateUrl(webview.getURL());
+            updateNavButtons();
+        });
+
+        webview.addEventListener('did-navigate', (e) => {
+            updateUrl(e.url);
+            updateNavButtons();
+        });
+
+        webview.addEventListener('did-navigate-in-page', (e) => {
+            updateUrl(e.url);
+            updateNavButtons();
+        });
+
+        webview.addEventListener('page-title-updated', (e) => {
+            document.title = e.title + ' — Alquímico';
+        });
+
+        btnBack.addEventListener('click', () => { if (webview.canGoBack()) webview.goBack(); });
+        btnForward.addEventListener('click', () => { if (webview.canGoForward()) webview.goForward(); });
+        btnReload.addEventListener('click', () => webview.reload());
+        btnClose.addEventListener('click', () => ipcRenderer.send('close-browser-window'));
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+--h2 Modificar Fuente Gestion de Medios
+--precode
+Entramos a 
+SPAGESTA
+SPACRMMED (***)
+en los asteriscos tenemos que poner el registro de 
+la ficha que queremos modificar
+precode--
+
+--idir -img_1781596843932_efz1j.png--ref001- idir--
+
+--precode
+Buscamos la fuente actual y la sustituimos por la 
+que nos piden.
+precode--
+

@@ -1,0 +1,8 @@
+--h2 Pasos
+--p 1 - Pedimos aprobación a controlling (Mario Guillem) justo con los informes que tiene que tener acceso. Si no nos lo han dicho se lo tenemos que pedir. 
+
+2 - Si nos la devuelven aprobada, significa que ya tiene acceso a esos informes y le podemos asignar la licencia.
+
+En el caso de que solo nos pidan acceso a informes y ya tienen la licencia (primero lo comprobamos nosotros), le decimos que se tiene que poner en contacto con 
+mario.guillem@aquaservice.com. p--
+

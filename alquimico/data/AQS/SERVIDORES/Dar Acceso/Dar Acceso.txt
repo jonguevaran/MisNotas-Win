@@ -1,0 +1,24 @@
+--h2 Dar acceso remoto a un grupo.
+Para este ejemplo se ha trabajado desde valdc1 p--
+
+--idir -img_1781622905557_6462j.png--Ref001- idir--
+
+--precode
+Buscamos escibiendo:
+acceso_remoto
+Escogemos uno de los tres opcionales, por ejemplo
+Acceso_Remoto_valPCAUX
+
+precode--
+
+--idir -img_1781623015499_69rkh.png--Ref002- idir--
+
+--precode
+En la pestaña miembros hacemos clic en agregar
+buscamos por nombre y aceptamos.
+
+si el usuario reporta que no consigue entrar:
+considerar que debe tener la VPN activa
+y que su grupo de forticlient este sin errores.
+precode--
+

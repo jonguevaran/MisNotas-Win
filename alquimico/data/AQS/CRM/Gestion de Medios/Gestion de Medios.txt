@@ -1,0 +1,10 @@
+--h2 Gestion de Medios
+
+--precode
+CRM Ventas --> 
+Gestion de Medios --> 
+Gest. Incidencia Medioa
+precode--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781541174963_68ovn.webp--Imagen- img--
+

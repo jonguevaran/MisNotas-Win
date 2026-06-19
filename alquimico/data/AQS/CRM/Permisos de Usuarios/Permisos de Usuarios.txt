@@ -1,0 +1,9 @@
+--h2 Permisos de Usuarios
+
+--precode
+Configuracion-->Gestion de Usuarios-->Permisos
+
+Origen=Iniciales a copiar
+Destino=Iniciales de quien recibe
+precode--
+

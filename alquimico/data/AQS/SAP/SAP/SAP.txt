@@ -1,0 +1,88 @@
+--h1 SAP
+
+--h2 Sacar albaranes y o ficheros de Higiene en SAP
+
+--p Aunque siempre van a pedir albaranes Estos sólo existen si hay entregas de productos si sólo hay higienes se saca un documento de higiene p--
+
+--p 1- Sacar el número de cliente independientemente del dato
+
+Nos lo pueden pedir por numero de cliente y fecha o por cualquiera de los documentos en el proceso de SAP que se divide en:
+
+Oferta : Empieza por 24**** podemos averiguar el Nº del cliente con la transacción VA22
+
+Pedido : Empieza por 50***** podemos averiguar el Nº de cliente con la transacción VA02
+
+Entrega : Empieza por 15***** podemos averiguar el Nº del cliente con la  Transacción VL02N
+
+Cuando tengamos el número del cliente podemos averiguar todos los números de documentos que necesitemos por la Transacción ZMM_HISTORIAL_CLIENT → Info1 Historial de Entregas p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528221749_txini.png--Imagen- img--
+
+--p Los albaranes se sacan en la VL02N con el número de entrega y las higienes con el número de pedido en la VA02 p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528275509_47g15.png--Imagen- img--
+
+--p 2- Sacar albaranes
+
+Una vez conseguido el número de entrega(15*) vamos a la VL02N y metemos el número de entrega → Entrega de salida (arriba a la izquierda) --> Dar salida a mensajes de entrega → seleccionamos el albarán y le damos a imprimir.
+
+Si indica que no existe documento podemos hacer 2 cosas:
+
+1- le damos a intro y vemos si el borón de contabilzar no está en Gris claro y se le puede dar si sale abajo algún aviso en amarillo sólo hay que darle a intro las veces que salga pero se hará el proceso, si sale en rojo se  puede pasar a SAP. p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528314929_liyon.png--Imagen- img--
+
+--p 2- Ya está en gris claro pero no sale el documento en ese caso le damos a intro y a guardar simplemente p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528347128_k8ums.png--Imagen- img--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528414153_t34er.png--Imagen- img--
+
+--p Luego previsualización de impresión p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528445505_mnoia.png--Imagen- img--
+
+--p y finalmente imprimir en PDF(si no se hace exactamente así el PDF estrá bloqueado para imprimirlo luego p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528491107_by4pz.png--Imagen- img--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528499066_eko18.png--Imagen- img--
+
+--p Errores que pueden salir y solucionarse
+
+cuando le damos a sacar el albarán nos sale que no hay documento:
+
+si le damos a intro y aparece el albarán ya contabilizado p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528555993_txqi4.png--Imagen- img--
+
+--p Le damos simplemente a guardar y aparecerá el documento p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528583896_uuv02.png--Imagen- img--
+
+--p 2. No aparece contabilizado le damos a contabilizar p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528635586_csty9.png--Imagen- img--
+
+--p -1.1 Aparece un texto abajo en amarillo:
+
+Le damos a enter la veces que sea necesarias hasta que se termine el proceso
+
+ 
+
+-1.2 Aperece un fallo en rojo que dice que no hay Stock en el Ciente:
+
+Si el Stock que fallo es de envases o estanterías le podemos restar la cantidad en la línea que te indica en el error al total que aparece y darle a contabilizar p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528669995_x8pwy.png--Imagen- img--
+
+--p 8-8=0 p--
+
+--img -file:///C:/Users/ender.guevara/Documents/Para sincronizar/Mis Notas/notebooks/aqs_1781509983078/img/img_1781528701289_xq0f0.png--Imagen- img--
+
+--p 2 el albarán no está firmado:
+
+1-1 No tiene firma o un minúsculo punto no podemos hacer nada
+
+1-2 Son de los dealers Es decir de las isals de portugal no tenemos la firma en esos albaranes pero existe una carpeta al que tiene acceso el equipo de portugal con los albaranes firmados de los dealers tienen que hablar con los chicos de portugal. p--
+
