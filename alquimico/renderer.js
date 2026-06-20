@@ -97,9 +97,9 @@ function escapeHtml(str) {
 }
 
 function highlightZcodex(text) {
-    const independentTags = ['h1', 'h2', 'h3', 'hr', 'br', 'ulli', 'olli', 'mark'];
+    const independentTags = ['t1', 't2', 't3', 'h', 's', 'l', 'lo', 'm', 'r'];
     let depth = 0;
-    const tagRegex = /(?<!\S)(\.\.(?:h1|h2|h3|hr|br|precode|blq|ulli|olli|img|idir|a|strong|em|code|p|mark))|(?:(h1|h2|h3|hr|br|precode|blq|ulli|olli|img|idir|a|strong|em|code|p|mark)\.\.)|(::)/g;
+    const tagRegex = /(?<!\S)(\.\.(?:t1|t2|t3|h|s|c|b|l|lo|ei|edir|e|n|cl|p|m|r(?:::[a-zA-Z0-9]+)?))|(?:(t1|t2|t3|h|s|c|b|l|lo|ei|edir|e|n|c|p|m|r)\.\.)|(::)/g;
     
     let result = '';
     let lastIndex = 0;
@@ -379,28 +379,32 @@ btnSelectDir.onclick = async () => {
 
 btnAddNotebook.onclick = () => {
     openModal('Nuevo Cuaderno', async (name) => {
+        name = name.trim().toUpperCase();
         await window.api.createNotebook(name);
         await loadTree();
-        showNotification("¡Cuaderno creado! 📁");
+        showNotification("¡Cuaderno creado! 📔");
     });
 };
 
 window.promptCreateCategory = (nbName, e) => {
     e.stopPropagation();
     openModal('Nueva Categoría', async (name) => {
+        name = name.trim().toUpperCase();
         await window.api.createCategory(nbName, name);
         await loadTree();
-        showNotification("¡Categoría creada! 📂");
+        showNotification("¡Categoría creada! 📁");
     });
 };
 
 window.promptCreateNote = (nbName, catName, e) => {
     e.stopPropagation();
     openModal('Nueva Nota', async (name) => {
+        name = name.trim();
+        name = name.charAt(0).toUpperCase() + name.slice(1);
         const p = await window.api.createNote(nbName, catName, name);
         await loadTree();
         selectNote({ name: name, path: p });
-        showNotification("¡Nota creada! ✏️");
+        showNotification("¡Nota creada! 📝");
     });
 };
 
@@ -412,6 +416,10 @@ window.promptRename = (type, oldPath, currentName, e) => {
     else if (type === 'note') title = 'Renombrar Nota';
 
     openModal(title, async (newName) => {
+        newName = newName.trim();
+        if (type === 'notebook' || type === 'category') newName = newName.toUpperCase();
+        else if (type === 'note') newName = newName.charAt(0).toUpperCase() + newName.slice(1);
+        
         if (newName === currentName) return;
         const newPath = await window.api.renameNode(oldPath, newName, type);
         if (newPath) {
@@ -518,6 +526,7 @@ if (btnDeleteNote) {
     };
 }
 
+
 // Editor Logic
 async function selectNote(note) {
     if (activeNotePath && isEditMode) {
@@ -575,22 +584,23 @@ btnToggleMode.onclick = async () => {
 
 function zcodexToMarkdown(zcodex) {
     let md = zcodex;
-    md = md.replace(/(?<!\S)\.\.h1\s+(.*)$/gm, '# $1');
-    md = md.replace(/(?<!\S)\.\.h2\s+(.*)$/gm, '## $1');
-    md = md.replace(/(?<!\S)\.\.h3\s+(.*)$/gm, '### $1');
-    md = md.replace(/(?<!\S)\.\.hr/g, '---');
-    md = md.replace(/(?<!\S)\.\.br/g, '\n');
-    md = md.replace(/(?<!\S)\.\.precode\s+([\s\S]*?)\s+precode\.\./g, '```\n$1\n```');
-    md = md.replace(/(?<!\S)\.\.blq\s+([\s\S]*?)\s+blq\.\./g, '> $1');
-    md = md.replace(/(?<!\S)\.\.ulli\s+(.*)$/gm, '- $1');
-    md = md.replace(/(?<!\S)\.\.olli\s+(.*)$/gm, '1. $1');
-    md = md.replace(/(?<!\S)\.\.img\s+::(.*?)::(.*?)::\s+img\.\./g, '![$2]($1)');
-    md = md.replace(/(?<!\S)\.\.idir\s+::(.*?)::(.*?)::\s+idir\.\./g, '![$2](img/$1)');
-    md = md.replace(/(?<!\S)\.\.a\s+::(.*?)::(.*?)::\s+a\.\./g, '[$2]($1)');
-    md = md.replace(/(?<!\S)\.\.strong\s+(.*?)\s+strong\.\./g, '**$1**');
-    md = md.replace(/(?<!\S)\.\.em\s+(.*?)\s+em\.\./g, '*$1*');
-    md = md.replace(/(?<!\S)\.\.code\s+(.*?)\s+code\.\./g, '`$1`');
+    md = md.replace(/(?<!\S)\.\.t1\s+(.*)$/gm, '# $1');
+    md = md.replace(/(?<!\S)\.\.t2\s+(.*)$/gm, '## $1');
+    md = md.replace(/(?<!\S)\.\.t3\s+(.*)$/gm, '### $1');
+    md = md.replace(/(?<!\S)\.\.h(?=\s|$)/g, '---');
+    md = md.replace(/(?<!\S)\.\.s(?=\s|$)/g, '\n');
+    md = md.replace(/(?<!\S)\.\.c\s*\n([\s\S]*?)\n\s*c\.\./g, '```\n$1\n```');
+    md = md.replace(/(?<!\S)\.\.b\s+([\s\S]*?)\s+b\.\./g, '> $1');
+    md = md.replace(/(?<!\S)\.\.l\s+(.*)$/gm, '- $1');
+    md = md.replace(/(?<!\S)\.\.lo\s+(.*)$/gm, '1. $1');
+    md = md.replace(/(?<!\S)\.\.ei\s+::(.*?)::(.*?)::\s+ei\.\./g, '![$2]($1)');
+    md = md.replace(/(?<!\S)\.\.edir\s+::(.*?)::(.*?)::\s+edir\.\./g, '![$2](img/$1)');
+    md = md.replace(/(?<!\S)\.\.e\s+::(.*?)::(.*?)::\s+e\.\./g, '[$2]($1)');
+    md = md.replace(/(?<!\S)\.\.n\s+(.*?)\s+n\.\./g, '**$1**');
+    md = md.replace(/(?<!\S)\.\.c\s+(.*?)\s+c\.\./g, '*$1*');
+    md = md.replace(/(?<!\S)\.\.cl\s+(.*?)\s+c\.\./g, '`$1`');
     md = md.replace(/(?<!\S)\.\.p\s+([\s\S]*?)\s+p\.\./g, '$1\n');
+    md = md.replace(/(?<!\S)\.\.m\b/g, '..mark');
     
     let lines = md.split('\n');
     let inTable = false;
@@ -598,6 +608,8 @@ function zcodexToMarkdown(zcodex) {
         let line = lines[i].trim();
         if (line.startsWith('//') && line.endsWith('//')) {
             lines[i] = '| ' + line.substring(2, line.length - 2).split('//').map(c => c.trim()).join(' | ') + ' |';
+        } else if (line.startsWith('::') && line.endsWith('::') && line.length > 4) {
+            lines[i] = '| ' + line.substring(2, line.length - 2).split('::').map(c => c.trim()).join(' | ') + ' |';
         }
     }
     return lines.join('\n');
@@ -672,7 +684,7 @@ markdownInput.addEventListener('keydown', (e) => {
         const lines = textToCursor.split('\n');
         const currentLine = lines[lines.length - 1];
         
-        const matchList = currentLine.match(/^(\s*)(\.\.ulli|\.\.olli)\s+(.*)$/);
+        const matchList = currentLine.match(/^(\s*)(\.\.l|\.\.lo|\.\.m\s+\[[ xX]\])\s+(.*)$/);
         
         if (matchList) {
             e.preventDefault();
@@ -688,7 +700,9 @@ markdownInput.addEventListener('keydown', (e) => {
                 markdownInput.selectionStart = markdownInput.selectionEnd = newTextToCursor.length;
             } else {
                 // Insertamos nueva línea con prefijo
-                const insertion = `\n${indent}${prefix} `;
+                let newPrefix = prefix;
+                if (prefix.startsWith('..m')) newPrefix = '..m [ ]';
+                const insertion = `\n${newPrefix} `;
                 const before = markdownInput.value.substring(0, cursor);
                 const after = markdownInput.value.substring(cursor);
                 markdownInput.value = before + insertion + after;
@@ -712,7 +726,7 @@ markdownInput.addEventListener('keydown', (e) => {
         const lines = textToCursor.split('\n');
         const currentLine = lines[lines.length - 1];
         
-        if (currentLine === '..ulli ' || currentLine === '..olli ') {
+        if (currentLine === '..l ' || currentLine === '..lo ' || currentLine === '..m [ ] ' || currentLine === '..m [x] ' || currentLine === '..m [X] ') {
             e.preventDefault();
             const newTextToCursor = textToCursor.substring(0, textToCursor.length - currentLine.length);
             const afterCursor = markdownInput.value.substring(cursor);
@@ -731,11 +745,12 @@ markdownInput.addEventListener('input', (e) => {
         const lastWord = words[words.length - 1];
         
         const CLOSING_TAGS = {
-            '..strong': ' strong..',
-            '..em': ' em..',
-            '..code': ' code..',
-            '..blq': '\n\nblq..',
-            '..p': '\n\np..'
+            '..n': ' n..',
+            '..c': ' c..',
+            '..cl': ' c..',
+            '..b': '\n\nb..',
+            '..p': '\n\np..',
+            '..r': ' r..'
         };
 
         if (CLOSING_TAGS[lastWord]) {
@@ -749,30 +764,37 @@ markdownInput.addEventListener('input', (e) => {
             } else {
                 markdownInput.selectionStart = markdownInput.selectionEnd = cursor;
             }
-        } else if (lastWord === '..idir') {
+        } else if (lastWord.startsWith('..r::')) {
+            const closing = ' r..';
+            const before = markdownInput.value.substring(0, cursor);
+            const after = markdownInput.value.substring(cursor);
+            
+            markdownInput.value = before + closing + after;
+            markdownInput.selectionStart = markdownInput.selectionEnd = cursor;
+        } else if (lastWord === '..edir') {
             const before = markdownInput.value.substring(0, cursor - 7);
             const after = markdownInput.value.substring(cursor);
             
             // Pausar y abrir dialogo
-            markdownInput.value = before + '..idir' + after;
+            markdownInput.value = before + '..edir' + after;
             markdownInput.selectionStart = markdownInput.selectionEnd = cursor - 1;
             
             window.api.selectLocalImage(activeNotePath).then(filename => {
                 if (filename) {
-                    const insertion = `..idir ::${filename}::Texto:: idir..`;
+                    const insertion = `..edir ::${filename}::Texto:: edir..`;
                     markdownInput.value = before + insertion + after;
                     markdownInput.selectionStart = before.length + insertion.length - 13; // Select "Texto"
                     markdownInput.selectionEnd = before.length + insertion.length - 8;
                 } else {
-                    markdownInput.value = before + '..idir ' + after;
+                    markdownInput.value = before + '..edir ' + after;
                     markdownInput.selectionStart = markdownInput.selectionEnd = before.length + 7;
                 }
                 updatePreview();
                 markdownInput.focus();
             });
             return;
-        } else if (lastWord === '..a' || lastWord === '..img') {
-            const closing = lastWord === '..a' ? '::Url::Texto:: a..' : '::Url::Texto:: img..';
+        } else if (lastWord === '..e' || lastWord === '..ei') {
+            const closing = lastWord === '..e' ? '::Url::Texto:: e..' : '::Url::Texto:: ei..';
             const before = markdownInput.value.substring(0, cursor);
             const after = markdownInput.value.substring(cursor);
             
@@ -780,11 +802,11 @@ markdownInput.addEventListener('input', (e) => {
             // Seleccionar la palabra "Url" para que el usuario empiece a escribir directamente
             markdownInput.selectionStart = cursor + 1;
             markdownInput.selectionEnd = cursor + 4;
-        } else if (lastWord === '..precode') {
+        } else if (lastWord === '..c') {
             const before = markdownInput.value.substring(0, cursor - 1);
             const after = markdownInput.value.substring(cursor);
             
-            markdownInput.value = before + '\n\nprecode..' + after;
+            markdownInput.value = before + '\n\nc..' + after;
             markdownInput.selectionStart = markdownInput.selectionEnd = before.length + 1;
         }
     }
@@ -808,7 +830,7 @@ function parseZcodex(text) {
 
     for (let i = 0; i < lines.length; i++) {
         let line = lines[i].trim();
-        if (line.startsWith('//') && line.endsWith('//')) {
+        if ((line.startsWith('//') && line.endsWith('//')) || (line.startsWith('::') && line.endsWith('::') && line.length > 4)) {
             inTable = true;
             tableRows.push(line);
         } else {
@@ -826,28 +848,28 @@ function parseZcodex(text) {
 
     let parsed = resultLines.join('\n');
 
-    parsed = parsed.replace(/(?<!\S)\.\.h1\s+(.*)$/gm, '<h1 class="text-3xl font-extrabold text-slate-700 dark:text-white mt-8 mb-4 border-b pb-2 border-slate-100 dark:border-slate-800">$1</h1>');
-    parsed = parsed.replace(/(?<!\S)\.\.h2\s+(.*)$/gm, '<h2 class="text-2xl font-bold text-slate-700 dark:text-white mt-6 mb-3">$1</h2>');
-    parsed = parsed.replace(/(?<!\S)\.\.h3\s+(.*)$/gm, '<h3 class="text-xl font-semibold text-slate-700 dark:text-white mt-5 mb-2">$1</h3>');
+    parsed = parsed.replace(/(?<!\S)\.\.t1\s+(.*)$/gm, '<h1 class="text-3xl font-extrabold text-slate-700 dark:text-white mt-8 mb-4 border-b pb-2 border-slate-100 dark:border-slate-800">$1</h1>');
+    parsed = parsed.replace(/(?<!\S)\.\.t2\s+(.*)$/gm, '<h2 class="text-2xl font-bold text-slate-700 dark:text-white mt-6 mb-3">$1</h2>');
+    parsed = parsed.replace(/(?<!\S)\.\.t3\s+(.*)$/gm, '<h3 class="text-xl font-semibold text-slate-700 dark:text-white mt-5 mb-2">$1</h3>');
 
-    parsed = parsed.replace(/(?<!\S)\.\.hr/g, '<hr class="my-6 border-t border-slate-200 dark:border-slate-700">');
-    parsed = parsed.replace(/(?<!\S)\.\.br/g, '<br>');
+    parsed = parsed.replace(/(?<!\S)\.\.h(?=\s|$)/g, '<hr class="my-6 border-t border-slate-200 dark:border-slate-700">');
+    parsed = parsed.replace(/(?<!\S)\.\.s(?=\s|$)/g, '<br>');
 
-    parsed = parsed.replace(/(?<!\S)\.\.precode\s+([\s\S]*?)\s+precode\.\./g, function(match, codeContent) {
+    parsed = parsed.replace(/(?<!\S)\.\.c\s*\n([\s\S]*?)\n\s*c\.\./g, function(match, codeContent) {
         return `<pre class="bg-slate-100 dark:bg-slate-800 p-4 rounded-xl font-mono text-xs overflow-x-auto my-5 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"><code>${codeContent}</code></pre>`;
     });
 
-    parsed = parsed.replace(/(?<!\S)\.\.blq\s+([\s\S]*?)\s+blq\.\./g, '<blockquote class="border-l-4 border-violet-500 pl-4 py-2 italic my-5 bg-violet-50/50 dark:bg-violet-950/20 text-slate-700 dark:text-slate-300 rounded-r-lg">$1</blockquote>');
+    parsed = parsed.replace(/(?<!\S)\.\.b\s+([\s\S]*?)\s+b\.\./g, '<blockquote class="border-l-4 border-violet-500 pl-4 py-2 italic my-5 bg-violet-50/50 dark:bg-violet-950/20 text-slate-700 dark:text-slate-300 rounded-r-lg">$1</blockquote>');
 
-    parsed = parsed.replace(/(?<!\S)\.\.ulli\s+(.*)$/gm, '<ul><li class="list-disc list-inside ml-4 my-1.5 text-slate-700 dark:text-slate-300">$1</li></ul>');
+    parsed = parsed.replace(/(?<!\S)\.\.l\s+(.*)$/gm, '<ul><li class="list-disc list-inside ml-4 mb-4 text-slate-700 dark:text-slate-300">$1</li></ul>');
     parsed = parsed.replace(/<\/ul>\s*<ul>/g, ''); 
 
-    parsed = parsed.replace(/(?<!\S)\.\.olli\s+(.*)$/gm, '<ol><li class="list-decimal list-inside ml-4 my-1.5 text-slate-700 dark:text-slate-300">$1</li></ol>');
+    parsed = parsed.replace(/(?<!\S)\.\.lo\s+(.*)$/gm, '<ol><li class="list-decimal list-inside ml-4 mb-4 text-slate-700 dark:text-slate-300">$1</li></ol>');
     parsed = parsed.replace(/<\/ol>\s*<ol>/g, '');
 
-    parsed = parsed.replace(/(?<!\S)\.\.img\s+::(.*?)::(.*?)::\s+img\.\./g, '<img src="$1" alt="$2" class="max-w-full h-auto rounded-xl shadow-md my-6 border border-slate-200 dark:border-slate-700 block mx-auto">');
+    parsed = parsed.replace(/(?<!\S)\.\.ei\s+::(.*?)::(.*?)::\s+ei\.\./g, '<img src="$1" alt="$2" class="max-w-full h-auto rounded-xl shadow-md my-6 border border-slate-200 dark:border-slate-700 block mx-auto">');
 
-    parsed = parsed.replace(/(?<!\S)\.\.idir\s+::(.*?)::(.*?)::\s+idir\.\./g, (match, p1, p2) => {
+    parsed = parsed.replace(/(?<!\S)\.\.edir\s+::(.*?)::(.*?)::\s+edir\.\./g, (match, p1, p2) => {
         let fullPath = '';
         if (activeNotePath) {
             fullPath = 'file:///' + (activeNotePath + '/img/' + p1).replace(/\\/g, '/');
@@ -857,21 +879,24 @@ function parseZcodex(text) {
         return `<img src="${fullPath}" alt="${p2}" class="max-w-full h-auto rounded-xl shadow-md my-6 border border-slate-200 dark:border-slate-700 block mx-auto">`;
     });
 
-    parsed = parsed.replace(/(?<!\S)\.\.a\s+::(.*?)::(.*?)::\s+a\.\./g, '<a href="$1" class="text-violet-600 dark:text-violet-400 hover:underline font-semibold">$2</a>');
+    parsed = parsed.replace(/(?<!\S)\.\.e\s+::(.*?)::(.*?)::\s+e\.\./g, '<a href="$1" class="text-violet-600 dark:text-violet-400 hover:underline font-semibold">$2</a>');
 
-    parsed = parsed.replace(/(?<!\S)\.\.strong\s+(.*?)\s+strong\.\./g, '<strong class="font-bold text-slate-950 dark:text-white">$1</strong>');
+    parsed = parsed.replace(/(?<!\S)\.\.n\s+(.*?)\s+n\.\./g, '<strong class="font-bold text-slate-950 dark:text-white">$1</strong>');
 
-    parsed = parsed.replace(/(?<!\S)\.\.em\s+(.*?)\s+em\.\./g, '<em class="italic text-slate-800 dark:text-slate-200">$1</em>');
+    parsed = parsed.replace(/(?<!\S)\.\.r::([a-zA-Z0-9]+)\s+(.*?)\s+r\.\./g, '<span style="background-color: #$1; color: #000; padding: 0 4px; border-radius: 4px;">$2</span>');
+    parsed = parsed.replace(/(?<!\S)\.\.r\s+(.*?)\s+r\.\./g, '<span style="background-color: #39ff14; color: #000; padding: 0 4px; border-radius: 4px;">$1</span>');
 
-    parsed = parsed.replace(/(?<!\S)\.\.code\s+(.*?)\s+code\.\./g, '<code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-xs text-slate-800 dark:text-slate-200">$1</code>');
+    parsed = parsed.replace(/(?<!\S)\.\.c\s+(.*?)\s+c\.\./g, '<em class="italic text-slate-800 dark:text-slate-200">$1</em>');
+
+    parsed = parsed.replace(/(?<!\S)\.\.cl\s+(.*?)\s+c\.\./g, '<code class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono text-xs text-slate-800 dark:text-slate-200">$1</code>');
 
     parsed = parsed.replace(/(?<!\S)\.\.p\s+([\s\S]*?)\s+p\.\./g, '<p class="mb-4 text-slate-700 dark:text-slate-300 leading-relaxed">$1</p>');
 
     let markCount = 0;
-    parsed = parsed.replace(/(?<!\S)\.\.mark\s+\[( |x|X)\]\s+(.*)$/gm, (match, state, text) => {
+    parsed = parsed.replace(/(?<!\S)\.\.m\s+\[( |x|X)\]\s+(.*)$/gm, (match, state, text) => {
         let isChecked = state.toLowerCase() === 'x' ? 'checked' : '';
         let index = markCount++;
-        return `<div class="flex items-center space-x-3 my-2 group">
+        return `<div class="flex items-center space-x-3 mb-4 group">
                   <input type="checkbox" class="w-5 h-5 rounded border-slate-300 text-violet-600 focus:ring-violet-500 transition-colors cursor-pointer flex-shrink-0" style="width:20px;height:20px;min-width:20px;min-height:20px;flex-shrink:0" data-mark-index="${index}" ${isChecked} onchange="toggleZcodexMark(${index}, this.checked)">
                   <span class="text-slate-700 dark:text-slate-300 select-none transition-colors ${isChecked ? 'line-through opacity-60' : ''}">${text}</span>
                 </div>`;
@@ -894,10 +919,10 @@ window.toggleZcodexMark = (index, isChecked) => {
     let count = 0;
     let newChar = isChecked ? 'x' : ' ';
     
-    let newText = rawText.replace(/(?<!\S)\.\.mark\s+\[( |x|X)\]/gm, (match, state) => {
+    let newText = rawText.replace(/(?<!\S)\.\.m\s+\[( |x|X)\]/gm, (match, state) => {
         if (count === index) {
             count++;
-            return `..mark [${newChar}]`;
+            return `..m [${newChar}]`;
         }
         count++;
         return match;
@@ -918,7 +943,7 @@ window.toggleZcodexMark = (index, isChecked) => {
 function renderTableHTML(rows) {
     if (rows.length === 0) return '';
     
-    let cleanRows = rows.map(r => r.split('//').map(cell => cell.trim()).filter((cell, idx, arr) => idx > 0 && idx < arr.length - 1));
+    let cleanRows = rows.map(r => r.split(r.startsWith('::') ? '::' : '//').map(cell => cell.trim()).filter((cell, idx, arr) => idx > 0 && idx < arr.length - 1));
     
     if (cleanRows.length === 0) return '';
 
@@ -958,12 +983,40 @@ function renderTableHTML(rows) {
 
     html += '<tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-600 dark:text-slate-400">';
     for (let i = startDataIndex; i < cleanRows.length; i++) {
-        html += '<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition duration-150">';
         let rowData = cleanRows[i];
+        let isTotalRow = rowData.some(c => c.trim() === '=');
+        let rowClass = isTotalRow ? 'bg-slate-50 dark:bg-slate-800/60 font-semibold' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition duration-150';
+        html += `<tr class="${rowClass}">`;
         while (rowData.length < headers.length) rowData.push('');
         rowData.slice(0, headers.length).forEach((cell, idx) => {
             let alignClass = alignment[idx] === 'center' ? 'text-center' : (alignment[idx] === 'right' ? 'text-right' : 'text-left');
-            html += `<td class="px-6 py-4 ${alignClass}">${cell}</td>`;
+            
+            let cellContent = cell.trim();
+            if (cellContent === '=') {
+                let total = 0;
+                for (let r = startDataIndex; r < cleanRows.length; r++) {
+                    if (r === i) continue;
+                    let rCell = (cleanRows[r][idx] || '').trim();
+                    if (rCell.includes('*')) {
+                        // Extract only digits, minus, and dot for robust parsing
+                        let numStr = rCell.substring(rCell.indexOf('*') + 1).replace(/[^\d.-]/g, '');
+                        let num = parseFloat(numStr);
+                        if (!isNaN(num)) {
+                            // Si el texto original tenía un signo menos antes o después del asterisco, asegurar que sea negativo
+                            if (rCell.includes('-')) {
+                                num = -Math.abs(num);
+                            }
+                            total += num;
+                        }
+                    }
+                }
+                // Limitar a 2 decimales si tiene decimales, para evitar problemas de precisión flotante
+                cellContent = Number.isInteger(total) ? total.toString() : total.toFixed(2);
+            } else if (cellContent.includes('*')) {
+                cellContent = cellContent.replace('*', '').trim();
+            }
+            
+            html += `<td class="px-6 py-4 ${alignClass}">${cellContent}</td>`;
         });
         html += '</tr>';
     }
@@ -1080,7 +1133,8 @@ window.toggleTheme = () => {
 window.showNotification = (msg) => {
     const el = document.getElementById('notification');
     const msgEl = document.getElementById('notification-msg');
-    msgEl.innerText = msg;
+    const cleanMsg = msg.replace(/[\u{1F300}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u2728\u270F\u2702]/gu, '').trim();
+    msgEl.innerText = cleanMsg;
     
     el.classList.remove('translate-y-20', 'opacity-0');
     el.classList.add('translate-y-0', 'opacity-100');
@@ -1116,23 +1170,25 @@ const autocompletePopup = document.getElementById('autocomplete-popup');
 const autocompleteList = document.getElementById('autocomplete-list');
 
 const autocompleteDictionary = [
-    { label: 'Encabezado 1', prefix: '..h1', insert: '..h1 ', selStart: 5, selEnd: 5 },
-    { label: 'Encabezado 2', prefix: '..h2', insert: '..h2 ', selStart: 5, selEnd: 5 },
-    { label: 'Encabezado 3', prefix: '..h3', insert: '..h3 ', selStart: 5, selEnd: 5 },
+    { label: 'Encabezado 1', prefix: '..t1', insert: '..t1 ', selStart: 5, selEnd: 5 },
+    { label: 'Encabezado 2', prefix: '..t2', insert: '..t2 ', selStart: 5, selEnd: 5 },
+    { label: 'Encabezado 3', prefix: '..t3', insert: '..t3 ', selStart: 5, selEnd: 5 },
     { label: 'Párrafo', prefix: '..p', insert: '..p\n\np..', selStart: 4, selEnd: 4 },
-    { label: 'Negrita', prefix: '..strong', insert: '..strong  strong..', selStart: 9, selEnd: 9 },
-    { label: 'Cursiva', prefix: '..em', insert: '..em  em..', selStart: 5, selEnd: 5 },
-    { label: 'Código en línea', prefix: '..code', insert: '..code  code..', selStart: 7, selEnd: 7 },
-    { label: 'Bloque de código', prefix: '..precode', insert: '..precode\n\nprecode..', selStart: 10, selEnd: 10 },
-    { label: 'Enlace web', prefix: '..a', insert: '..a ::URL::Texto:: a..', selStart: 6, selEnd: 9 },
-    { label: 'Imagen web', prefix: '..img', insert: '..img ::URL::Texto:: img..', selStart: 8, selEnd: 11 },
-    { label: 'Cita', prefix: '..blq', insert: '..blq\n\nblq..', selStart: 6, selEnd: 6 },
-    { label: 'Lista Desordenada', prefix: '..ulli', insert: '..ulli ', selStart: 7, selEnd: 7 },
-    { label: 'Lista Ordenada', prefix: '..olli', insert: '..olli ', selStart: 7, selEnd: 7 },
-    { label: 'Casilla de verificación', prefix: '..mark', insert: '..mark [ ] Texto', selStart: 11, selEnd: 16 },
-    { label: 'Línea horizontal', prefix: '..hr', insert: '..hr\n', selStart: 5, selEnd: 5 },
-    { label: 'Salto de línea', prefix: '..br', insert: '..br\n', selStart: 5, selEnd: 5 },
-    { label: 'Tabla', prefix: '// ', insert: '// Titulo1 // Titulo2 // Titulo3 //\n// <- // <-> // -> //\n// texto // texto // texto //\n', selStart: 3, selEnd: 10 }
+    { label: 'Negrita', prefix: '..n', insert: '..n  n..', selStart: 4, selEnd: 4 },
+    { label: 'Cursiva', prefix: '..c', insert: '..c  c..', selStart: 4, selEnd: 4 },
+    { label: 'Código en línea', prefix: '..cl', insert: '..cl  c..', selStart: 5, selEnd: 5 },
+    { label: 'Bloque de código', prefix: '..c', insert: '..c\n\nc..', selStart: 4, selEnd: 4 },
+    { label: 'Enlace web', prefix: '..e', insert: '..e ::URL::Texto:: e..', selStart: 6, selEnd: 9 },
+    { label: 'Imagen web', prefix: '..ei', insert: '..ei ::URL::Texto:: ei..', selStart: 7, selEnd: 10 },
+    { label: 'Cita', prefix: '..b', insert: '..b\n\nb..', selStart: 4, selEnd: 4 },
+    { label: 'Lista Desordenada', prefix: '..l', insert: '..l ', selStart: 4, selEnd: 4 },
+    { label: 'Lista Ordenada', prefix: '..lo', insert: '..lo ', selStart: 5, selEnd: 5 },
+    { label: 'Casilla de verificación', prefix: '..m', insert: '..m [ ] Texto', selStart: 8, selEnd: 13 },
+    { label: 'Línea horizontal', prefix: '..h', insert: '..h\n', selStart: 4, selEnd: 4 },
+    { label: 'Salto de línea', prefix: '..s', insert: '..s\n', selStart: 4, selEnd: 4 },
+    { label: 'Tabla', prefix: '// ', insert: '// Titulo1 // Titulo2 // Titulo3 //\n// <- // <-> // -> //\n:: texto :: texto :: texto ::\n', selStart: 3, selEnd: 10 },
+    { label: 'Resaltado', prefix: '..r', insert: '..r  r..', selStart: 4, selEnd: 4 },
+    { label: 'Resaltado Color', prefix: '..r::', insert: '..r::HEX  r..', selStart: 9, selEnd: 9 }
 ];
 
 let currentAutocompletePrefix = '';
@@ -1188,7 +1244,7 @@ function renderAutocompleteList() {
 function insertAutocomplete(match) {
     const cursor = markdownInput.selectionStart;
     const textToCursor = markdownInput.value.substring(0, cursor);
-    const prefixMatch = textToCursor.match(/(?:^|\s)(\.\.[a-z0-9]*|\/\/\s?)$/);
+    const prefixMatch = textToCursor.match(/(?:^|\s)(\.\.[a-z0-9]*(?:::[a-zA-Z0-9]*)?|\/\/\s?)$/);
     const prefixLength = prefixMatch ? prefixMatch[1].length : currentAutocompletePrefix.length;
     
     const before = markdownInput.value.substring(0, cursor - prefixLength);
@@ -1196,7 +1252,7 @@ function insertAutocomplete(match) {
     
     closeAutocomplete();
     
-    if (match.prefix === '..idir') {
+    if (match.prefix === '..edir') {
         window.api.selectLocalImage(activeNotePath).then(filename => {
             if (filename) {
                 const insertion = `..idir ::${filename}::Texto:: idir..`;
@@ -1228,7 +1284,7 @@ markdownInput.addEventListener('input', (e) => {
     // Autocomplete UI logic
     const cursor = markdownInput.selectionStart;
     const textToCursor = markdownInput.value.substring(0, cursor);
-    const match = textToCursor.match(/(?:^|\s)(\.\.[a-z0-9]*|\/\/\s?)$/);
+    const match = textToCursor.match(/(?:^|\s)(\.\.[a-z0-9]*(?:::[a-zA-Z0-9]*)?|\/\/\s?)$/);
     
     if (match) {
         // Evitar que Backspace vuelva a abrir el menú si no estaba activo
@@ -1274,9 +1330,27 @@ markdownInput.addEventListener('keydown', (e) => {
             insertAutocomplete(currentAutocompleteMatches[autocompleteSelectedIndex]);
         } else if (e.key === 'Escape') {
             closeAutocomplete();
+        } else if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+            closeAutocomplete();
         }
     }
     // Existing keydown logic handled previously
+});
+
+document.addEventListener('mousedown', (e) => {
+    if (autocompleteActive && autocompletePopup && !autocompletePopup.contains(e.target)) {
+        closeAutocomplete();
+    }
+    
+    const sidebarLeft = document.getElementById('sidebar-left');
+    const sidebarRight = document.getElementById('sidebar-right');
+    
+    if (sidebarLeftOpen && sidebarLeft && !sidebarLeft.contains(e.target) && !e.target.closest('[onclick*="toggleSidebar(\\\'left\\\')"]')) {
+        closeSidebar('left');
+    }
+    if (sidebarRightOpen && sidebarRight && !sidebarRight.contains(e.target) && !e.target.closest('[onclick*="toggleSidebar(\\\'right\\\')"]')) {
+        closeSidebar('right');
+    }
 });
 
 // Auto-save on blur
@@ -1291,12 +1365,13 @@ btnRefresh.onclick = () => {
 };
 
 if (btnNormalizeZcodex) {
-    btnNormalizeZcodex.onclick = () => {
+    btnNormalizeZcodex.onclick = async () => {
+        if (!activeNotePath) return;
         let content = markdownInput.value;
         
         // Expandir etiquetas inline a multilinea para indentación
-        content = content.replace(/(?<!\S)(\.\.(?:p|precode|blq))[ \t]+([\s\S]*?)[ \t]+((?:p|precode|blq)\.\.)/g, '$1\n$2\n$3');
-        content = content.replace(/(?<!\S)(\.\.(?:h1|h2|h3))[ \t]+(.+)/g, '$1\n$2');
+        content = content.replace(/(?<!\S)(\.\.(?:p|c|b))[ \t]+([\s\S]*?)[ \t]+((?:p|c|b)\.\.)/g, '$1\n$2\n$3');
+        content = content.replace(/(?<!\S)(\.\.(?:t1|t2|t3))[ \t]+(.+)/g, '$1\n$2');
 
         // Aplicar sangría
         let linesArray = content.split('\n');
@@ -1312,9 +1387,9 @@ if (btnNormalizeZcodex) {
                 continue;
             }
 
-            let isClose = t.match(/^(p|precode|blq)\.\.$/);
+            let isClose = t.match(/^(p|c|b)\.\.$/);
             if (isClose) {
-                if (t === 'precode..') inPrecode = false;
+                if (t === 'c..') inPrecode = false;
                 if (depth > 0) depth--;
                 outLines.push(' '.repeat(depth * 4) + t);
                 continue;
@@ -1335,21 +1410,25 @@ if (btnNormalizeZcodex) {
                 outLines.push(' '.repeat(requiredIndent * 4) + t);
             }
 
-            let isOpen = t.match(/^\.\.(p|precode|blq)$/);
+            let isOpen = t.match(/^\.\.(p|c|b)$/);
             if (isOpen) {
-                if (t === '..precode') inPrecode = true;
+                if (t === '..c') inPrecode = true;
                 depth++;
-            } else if (t.match(/^\.\.(h1|h2|h3)$/)) {
+            } else if (t.match(/^\.\.(t1|t2|t3)$/)) {
                 indentNext = true;
             }
         }
         content = outLines.join('\n');
         
-        markdownInput.value = content;
-        updatePreview();
-        updateSyntaxHighlighting();
-        showSaveStatus(false);
-        showNotification("Zcodex Normalizado ✔️");
+        if (markdownInput.value !== content) {
+            markdownInput.value = content;
+            updatePreview();
+            updateSyntaxHighlighting();
+            await saveCurrentNote();
+            showNotification("Zcodex Normalizado ✔️");
+        } else {
+            showNotification("La nota ya está normalizada.");
+        }
     };
 }
 

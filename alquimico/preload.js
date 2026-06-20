@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('api', {
     exportNote: (content) => ipcRenderer.invoke('export-note', content),
     deleteNode: (path) => ipcRenderer.invoke('delete-node', path),
     moveNode: (oldPath, newNb, newCat) => ipcRenderer.invoke('move-node', oldPath, newNb, newCat),
+    renameNode: (oldPath, newName, type) => ipcRenderer.invoke('rename-node', oldPath, newName, type),
     selectLocalImage: (notePath) => ipcRenderer.invoke('select-local-image', notePath),
     cleanupImages: (notePath, content) => ipcRenderer.invoke('cleanup-images', notePath, content),
     openExternal: (url) => ipcRenderer.invoke('open-external', url)

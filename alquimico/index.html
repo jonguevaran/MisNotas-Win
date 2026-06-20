@@ -180,23 +180,25 @@
         <!-- BARRA LATERAL IZQUIERDA: Lista de Notas -->
         <aside id="sidebar-left"
             class="absolute inset-y-0 left-0 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col z-20 transition-transform duration-300 transform -translate-x-full md:translate-x-0 md:relative md:flex shrink-0">
-            <!-- Botón de nuevo cuaderno -->
+            <!-- Barra de búsqueda -->
             <div class="px-4 border-b border-slate-100 dark:border-slate-800 flex flex-col justify-center h-[73px] shrink-0">
-                <button id="btn-add-notebook"
-                    class="w-full flex items-center justify-center space-x-2 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white font-semibold py-2.5 px-4 rounded-xl shadow-md shadow-violet-200 dark:shadow-none transition duration-150">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Nuevo Cuaderno</span>
-                </button>
-            </div>
-            <div class="px-4 py-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </div>
-                    <input type="text" id="search-input" placeholder="Buscar notas..." class="w-full pl-9 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800/50 border-none rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-violet-500 focus:outline-none transition-shadow">
+                    <input type="text" id="search-input" placeholder="Buscar notas..." class="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-800/50 border-none rounded-lg text-sm text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-violet-500 focus:outline-none transition-shadow">
                 </div>
+            </div>
+            
+            <!-- Botón de nuevo cuaderno -->
+            <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <button id="btn-add-notebook"
+                    class="w-full flex items-center justify-center space-x-2 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white font-medium text-sm py-2 px-4 rounded-xl shadow-sm shadow-violet-200 dark:shadow-none transition duration-150">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Nuevo Cuaderno</span>
+                </button>
             </div>
 
             <!-- Contenedor del arbol de notas -->
@@ -327,83 +329,93 @@
             <div class="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
                 <p class="text-slate-500 dark:text-slate-400 mb-2">Haz clic sobre un elemento para insertarlo en el
                     editor:</p>
-                <button onclick="insertTemplate('..h1 Título Principal')"
+                <button onclick="insertTemplate('..t1 Título Principal')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Encabezado 1</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..h1 Texto</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..t1 Texto</span>
                 </button>
-                <button onclick="insertTemplate('..h2 Título Secundario')"
+                <button onclick="insertTemplate('..t2 Título Secundario')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Encabezado 2</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..h2 Texto</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..t2 Texto</span>
                 </button>
-                <button onclick="insertTemplate('..h3 Subtítulo')"
+                <button onclick="insertTemplate('..t3 Subtítulo')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Encabezado 3</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..h3 Texto</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..t3 Texto</span>
                 </button>
                 <button onclick="insertTemplate('..p\n    \np..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Párrafo</span>
                     <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..p Texto p..</span>
                 </button>
-                <button onclick="insertTemplate('..strong Texto en negrita strong..')"
+                <button onclick="insertTemplate('..n Texto en negrita n..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Negrita</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..strong Texto strong..</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..n Texto n..</span>
                 </button>
-                <button onclick="insertTemplate('..em Texto en cursiva em..')"
+                <button onclick="insertTemplate('..c Texto en cursiva c..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Cursiva</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..em Texto em..</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..c Texto c..</span>
                 </button>
-                <button onclick="insertTemplate('..code console.log(&apos;Hola Zcodex&apos;) code..')"
+                <button onclick="insertTemplate('..r Texto resaltado r..')"
+                    class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">Resaltar</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..r Texto r..</span>
+                </button>
+                <button onclick="insertTemplate('..r::FF0000 Texto resaltado en rojo r..')"
+                    class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">Resaltar con Color HEX</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..r::HEX Texto r..</span>
+                </button>
+                <button onclick="insertTemplate('..cl console.log(&apos;Hola Zcodex&apos;) c..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Código en línea</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..code Texto code..</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..cl Texto c..</span>
                 </button>
-                <button onclick="insertTemplate('..precode\\n    // Bloque de código\\n    let variables = 100;\\nprecode..')"
+                <button onclick="insertTemplate('..c\\n    // Bloque de código\\n    let variables = 100;\\nc..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Bloque de código</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..precode Código precode..</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..c Código c..</span>
                 </button>
-                <button onclick="insertTemplate('..a ::https://google.com::Buscador Google:: a..')"
+                <button onclick="insertTemplate('..e ::https://google.com::Buscador Google:: e..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Enlace</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..a ::URL::Texto:: a..</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..e ::URL::Texto:: e..</span>
                 </button>
                 <button
-                    onclick="insertTemplate('..img ::https://images.unsplash.com/photo-1579546929518-9e396f3cc809::Imagen colorida:: img..')"
+                    onclick="insertTemplate('..ei ::https://images.unsplash.com/photo-1579546929518-9e396f3cc809::Imagen colorida:: ei..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Imagen</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..img ::URL::Texto:: img..</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..ei ::URL::Texto:: ei..</span>
                 </button>
-                <button onclick="insertTemplate('..blq\\n    Una cita reflexiva e importante.\\nblq..')"
+                <button onclick="insertTemplate('..b\\n    Una cita reflexiva e importante.\\nb..')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Cita (Blockquote)</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..blq Texto blq..</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..b Texto b..</span>
                 </button>
-                <button onclick="insertTemplate('..ulli Primer elemento\\n..ulli Segundo elemento')"
+                <button onclick="insertTemplate('..l Primer elemento\\n..l Segundo elemento')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Lista desordenada</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..ulli Elemento</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..l Elemento</span>
                 </button>
-                <button onclick="insertTemplate('..olli Primer elemento\\n..olli Segundo elemento')"
+                <button onclick="insertTemplate('..lo Primer elemento\\n..lo Segundo elemento')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Listas Ordenadas</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..olli Elemento</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..lo Elemento</span>
                 </button>
-                <button onclick="insertTemplate('\\n..hr\\n')"
+                <button onclick="insertTemplate('\\n..h\\n')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Línea horizontal</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..hr</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..h</span>
                 </button>
-                <button onclick="insertTemplate('..br')"
+                <button onclick="insertTemplate('..s')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Salto de línea</span>
-                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..br</span>
+                    <span class="code-font text-violet-500 dark:text-violet-400 mt-1">..s</span>
                 </button>
-                <button onclick="insertTemplate('\n// Titulo1 // Titulo2 // Titulo3 //\n// <- // <-> // -> //\n// texto // texto // texto //')"
+                <button onclick="insertTemplate('\n// Titulo1 // Titulo2 // Titulo3 //\n// <- // <-> // -> //\n:: texto :: texto :: texto ::')"
                     class="w-full text-left p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-800 bg-slate-50 dark:bg-slate-900/30 transition flex flex-col">
                     <span class="font-semibold text-slate-700 dark:text-slate-300">Tabla</span>
                     <span class="code-font text-violet-500 dark:text-violet-400 mt-1">// Titulo1 // Titulo2 // Titulo3 //<br>// &lt;- // &lt;-&gt; // -&gt; //</span>
